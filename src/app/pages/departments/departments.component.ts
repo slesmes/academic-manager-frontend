@@ -9,7 +9,6 @@ import { DepartmentsService } from '../../core/services/departments.service';
   selector: 'app-departments',
   templateUrl: './departments.component.html',
   styleUrls: ['./departments.component.scss'],
-  standalone: true,
   imports: [CommonModule, FormsModule]
 })
 export class DepartmentsComponent implements OnInit {

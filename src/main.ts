@@ -7,4 +7,3 @@ import { provideHttpClient} from '@angular/common/http';
 bootstrapApplication(AppComponent, {
   providers: [provideRouter(routes), provideHttpClient()]
 }).catch(err => console.error(err));
-

@@ -13,10 +13,10 @@
     <h3>Nuevo Profesor</h3>
     <form (ngSubmit)="guardarProfesor()">
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" [(ngModel)]="nuevoProfesor.nombre" name="nombre" required>
+      <input type="text" id="nombre" [(ngModel)]="nuevoProfesor.name" name="nombre" required>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
-      <input type="date" id="fechaContratacion" [(ngModel)]="nuevoProfesor.fechaContratacion" name="fechaContratacion" required>
+      <input type="date" id="fechaContratacion" [(ngModel)]="nuevoProfesor.hiredate" name="fechaContratacion" required>
 
       <label for="departamento">Departamento:</label>
       <select id="departamento" [(ngModel)]="nuevoProfesor.departamento" name="departamento" required>
@@ -40,10 +40,10 @@
       <input type="number" id="id" [(ngModel)]="profesorAEditar.id" name="id" (change)="editarProfesor(profesorAEditar.id)" required>
 
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" [(ngModel)]="profesorAEditar.nombre" name="nombre" required>
+      <input type="text" id="nombre" [(ngModel)]="profesorAEditar.name" name="nombre" required>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
-      <input type="date" id="fechaContratacion" [(ngModel)]="profesorAEditar.fechaContratacion" name="fechaContratacion" required>
+      <input type="date" id="fechaContratacion" [(ngModel)]="profesorAEditar.hiredate" name="fechaContratacion" required>
 
       <label for="departamento">Departamento:</label>
       <select id="departamento" [(ngModel)]="profesorAEditar.departamento" name="departamento" required>
@@ -70,8 +70,8 @@
   <tbody>
     <tr *ngFor="let prof of profesoresFiltrados">
       <td>{{ prof.id }}</td>
-      <td>{{ prof.nombre }}</td>
-      <td>{{ prof.fechaContratacion | date }}</td>
+      <td>{{ prof.name }}</td>
+      <td>{{ prof.hiredate | date }}</td>
       <td>{{ prof.departamento }}</td>
     </tr>
   </tbody>

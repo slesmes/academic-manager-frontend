@@ -7,16 +7,97 @@
   <button (click)="mostrarFormularioBuscar = true">Buscar Departamento</button>
 </div>
 
-<div class="departments-container">
-    <div *ngIf="departments.length === 0" class="no-data">
-      No hay departamentos disponibles.
-    </div>
-    <ul class="departments-list">
-      <li *ngFor="let department of departments" class="department-card">
-        <h3>{{ department.name }}</h3>
-        <p *ngIf="department.description">{{ department.description }}</p>
-      </li>
-    </ul>
+  <table *ngIf="departments.length > 0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Fecha de Contratación</th>
+        <th>Departamento</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let dep of departments">
+        <td>{{ dep.id }}</td>
+        <td>{{ dep.name }}</td>
+        <td>{{ dep.description}}</td>
+        <td>{{ dep.createDate }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <p *ngIf="departments.length === 0">No hay departamentos asignados.</p>
+
+<div *ngIf="mostrarFormulario" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormulario = false">&times;</span>
+    <h3>Nuevo Departamento</h3>
+    <form (ngSubmit)="crearDepartamento()">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" [(ngModel)]="nuevoDepartamento.name" name="nombre" required>
+
+      <label for="descripcion">Descripción:</label>
+      <input type="text" id="descripcion" [(ngModel)]="nuevoDepartamento.description" name="descripcion">
+
+      <div class="modal-buttons">
+        <button type="submit">Guardar</button>
+        <button type="button" (click)="mostrarFormulario = false">Cancelar</button>
+      </div>
+    </form>
   </div>
-  
+</div>
+
+<div *ngIf="mostrarFormularioEdicion" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioEdicion = false">&times;</span>
+    <h3>Editar Departamento</h3>
+    <form (ngSubmit)="actualizarDepartamento()">
+      <label for="id">ID:</label>
+      <input type="number" id="id" [(ngModel)]="departamentoAEditar.id" name="id" (change)="editarDepartamento(departamentoAEditar.id)" required>
+
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" [(ngModel)]="departamentoAEditar.name" name="nombre" required>
+
+      <label for="descripcion">Descripción:</label>
+      <input type="text" id="descripcion" [(ngModel)]="departamentoAEditar.description" name="descripcion">
+
+      <div class="modal-buttons">
+        <button type="submit">Actualizar</button>
+        <button type="button" (click)="mostrarFormularioEdicion = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="mostrarFormularioEliminar" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioEliminar = false">&times;</span>
+    <h3>Eliminar Departamento</h3>
+    <form (ngSubmit)="eliminarDepartamento()">
+      <label for="id">ID:</label>
+      <input type="number" id="id" [(ngModel)]="departamentoAEliminar.id" name="id" required>
+
+      <div class="modal-buttons">
+        <button type="submit">Eliminar</button>
+        <button type="button" (click)="mostrarFormularioEliminar = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="mostrarFormularioBuscar" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioBuscar = false">&times;</span>
+    <h3>Buscar Departamento</h3>
+    <form (ngSubmit)="buscarDepartamento()">
+      <label for="id">ID:</label>
+      <input type="number" id="id" [(ngModel)]="departamentoABuscar.id" name="id" required>
+
+      <div class="modal-buttons">
+        <button type="submit">Buscar</button>
+        <button type="button" (click)="mostrarFormularioBuscar = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 

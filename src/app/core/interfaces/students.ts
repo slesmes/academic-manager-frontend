@@ -1,8 +1,8 @@
 import { Course } from './courses';
 
-export interface student {
+export interface Student {
     id: string;
-    nombre: string;
-    fechaNacimiento: Date;
-    cursos?: Course["id"][];
+    name: string;
+    lastname: string;
+    birthdate: Date;
 }
