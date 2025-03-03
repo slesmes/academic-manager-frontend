@@ -1,0 +1,79 @@
+<h2>Profesores</h2>
+
+<div class="dashboard">
+  <button (click)="mostrarFormulario = true">Crear Profesor</button>
+  <button (click)="mostrarFormularioEdicion = true">Editar Profesor</button>
+  <button (click)="eliminarProfesor()">Eliminar Profesor</button>
+  <button (click)="obtenerProfesores()">Obtener Profesores</button>
+</div>
+
+<div *ngIf="mostrarFormulario" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormulario = false">&times;</span>
+    <h3>Nuevo Profesor</h3>
+    <form (ngSubmit)="guardarProfesor()">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" [(ngModel)]="nuevoProfesor.nombre" name="nombre" required>
+
+      <label for="fechaContratacion">Fecha de Contratación:</label>
+      <input type="date" id="fechaContratacion" [(ngModel)]="nuevoProfesor.fechaContratacion" name="fechaContratacion" required>
+
+      <label for="departamento">Departamento:</label>
+      <select id="departamento" [(ngModel)]="nuevoProfesor.departamento" name="departamento" required>
+        <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
+      </select>
+
+      <div class="modal-buttons">
+        <button type="submit">Guardar</button>
+        <button type="button" (click)="mostrarFormulario = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="mostrarFormularioEdicion" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioEdicion = false">&times;</span>
+    <h3>Editar Profesor</h3>
+    <form (ngSubmit)="actualizarProfesor()">
+      <label for="id">ID:</label>
+      <input type="number" id="id" [(ngModel)]="profesorAEditar.id" name="id" (change)="editarProfesor(profesorAEditar.id)" required>
+
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" [(ngModel)]="profesorAEditar.nombre" name="nombre" required>
+
+      <label for="fechaContratacion">Fecha de Contratación:</label>
+      <input type="date" id="fechaContratacion" [(ngModel)]="profesorAEditar.fechaContratacion" name="fechaContratacion" required>
+
+      <label for="departamento">Departamento:</label>
+      <select id="departamento" [(ngModel)]="profesorAEditar.departamento" name="departamento" required>
+        <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
+      </select>
+
+      <div class="modal-buttons">
+        <button type="submit">Actualizar</button>
+        <button type="button" (click)="mostrarFormularioEdicion = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<table *ngIf="profesoresFiltrados.length > 0">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Fecha de Contratación</th>
+      <th>Departamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let prof of profesoresFiltrados">
+      <td>{{ prof.id }}</td>
+      <td>{{ prof.nombre }}</td>
+      <td>{{ prof.fechaContratacion | date }}</td>
+      <td>{{ prof.departamento }}</td>
+    </tr>
+  </tbody>
+</table>
+<p *ngIf="profesoresFiltrados.length === 0">No hay profesores asignados a este departamento.</p>

@@ -1,0 +1,95 @@
+<h2>Departamentos</h2>
+
+<div class="dashboard">
+  <button (click)="mostrarFormulario = true">Crear Departamento</button>
+  <button (click)="mostrarFormularioEdicion = true">Editar Departamento</button>
+  <button (click)="mostrarFormularioEliminar = true">Eliminar Departamento</button>
+  <button (click)="mostrarFormularioBuscar = true">Buscar Departamento</button>
+</div>
+
+<div *ngIf="mostrarFormulario" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormulario = false">&times;</span>
+    <h3>Nuevo Departamento</h3>
+    <form (ngSubmit)="crearDepartamento()">
+      <label for="codigo">Código:</label>
+      <input type="text" id="codigo" [(ngModel)]="nuevoDepartamento.codigo" name="codigo" required>
+
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" [(ngModel)]="nuevoDepartamento.nombre" name="nombre" required>
+
+      <div class="modal-buttons">
+        <button type="submit">Guardar</button>
+        <button type="button" (click)="mostrarFormulario = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="mostrarFormularioEdicion" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioEdicion = false">&times;</span>
+    <h3>Editar Departamento</h3>
+    <form (ngSubmit)="actualizarDepartamento()">
+      <label for="codigo">Código:</label>
+      <input type="text" id="codigo" [(ngModel)]="departamentoAEditar.codigo" name="codigo" (change)="editarDepartamento(departamentoAEditar.codigo)" required>
+
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" [(ngModel)]="departamentoAEditar.nombre" name="nombre" required>
+
+      <div class="modal-buttons">
+        <button type="submit">Actualizar</button>
+        <button type="button" (click)="mostrarFormularioEdicion = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="mostrarFormularioEliminar" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioEliminar = false">&times;</span>
+    <h3>Eliminar Departamento</h3>
+    <form (ngSubmit)="eliminarDepartamento()">
+      <label for="codigo">Código:</label>
+      <input type="text" id="codigo" [(ngModel)]="departamentoAEliminar.codigo" name="codigo" required>
+
+      <div class="modal-buttons">
+        <button type="submit">Eliminar</button>
+        <button type="button" (click)="mostrarFormularioEliminar = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="mostrarFormularioBuscar" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioBuscar = false">&times;</span>
+    <h3>Buscar Departamento</h3>
+    <form (ngSubmit)="buscarDepartamento()">
+      <label for="codigo">Código:</label>
+      <input type="text" id="codigo" [(ngModel)]="departamentoABuscar.codigo" name="codigo" required>
+
+      <div class="modal-buttons">
+        <button type="submit">Buscar</button>
+        <button type="button" (click)="mostrarFormularioBuscar = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Código</th>
+      <th>Nombre</th>
+      <th>Número de Profesores</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let dept of departments" (click)="verProfesores(dept)">
+      <td>{{ dept.codigo }}</td>
+      <td>{{ dept.nombre }}</td>
+      <td>{{ dept.profesores?.length }}</td>
+    </tr>
+  </tbody>
+</table>
