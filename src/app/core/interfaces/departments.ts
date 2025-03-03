@@ -1,8 +1,8 @@
 import { Professor } from './professors';
 
 export interface Department {
-    id: string;
+    id: number;
     name: string;
     description: string;
-    createDate: Date;
+    creationDate: Date;
 }

@@ -26,6 +26,19 @@ h2 {
   }
 }
 
+.searchbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+
+  input {
+    border-radius: 5px;
+    font-size: 1em;
+    padding: 10px;
+    width: 300px;
+  }
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -80,8 +93,8 @@ table {
   width: 80%;
   max-width: 500px;
   border-radius: 10px;
-  text-align: center; /* Centrar el texto */
-  position: relative; /* Necesario para posicionar los botones */
+  text-align: center;
+  position: relative; 
 }
 
 .close {
