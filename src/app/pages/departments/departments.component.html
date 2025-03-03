@@ -4,28 +4,31 @@
   <button (click)="mostrarFormulario = true">Crear Departamento</button>
   <button (click)="mostrarFormularioEdicion = true">Editar Departamento</button>
   <button (click)="mostrarFormularioEliminar = true">Eliminar Departamento</button>
-  <button (click)="mostrarFormularioBuscar = true">Buscar Departamento</button>
 </div>
 
-  <table *ngIf="departments.length > 0">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Fecha de Contratación</th>
-        <th>Departamento</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let dep of departments">
-        <td>{{ dep.id }}</td>
-        <td>{{ dep.name }}</td>
-        <td>{{ dep.description}}</td>
-        <td>{{ dep.createDate }}</td>
-      </tr>
-    </tbody>
-  </table>
-  <p *ngIf="departments.length === 0">No hay departamentos asignados.</p>
+<div class="searchbar">
+  <input type="text" placeholder="Buscar por ID" [(ngModel)]="departamentoABuscar.id" (input)="buscarDepartamento()">
+</div>
+
+<table *ngIf="filteredDepartments.length > 0">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Descripcion</th>
+      <th>Fecha de Creacion</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let dep of filteredDepartments">
+      <td>{{ dep.id }}</td>
+      <td>{{ dep.name }}</td>
+      <td>{{ dep.description}}</td>
+      <td>{{ dep.creationDate | date: 'shortDate'}}</td>
+    </tr>
+  </tbody>
+</table>
+<p *ngIf="filteredDepartments.length === 0">No hay departamentos asignados.</p>
 
 <div *ngIf="mostrarFormulario" class="modal">
   <div class="modal-content">
@@ -52,13 +55,16 @@
     <h3>Editar Departamento</h3>
     <form (ngSubmit)="actualizarDepartamento()">
       <label for="id">ID:</label>
-      <input type="number" id="id" [(ngModel)]="departamentoAEditar.id" name="id" (change)="editarDepartamento(departamentoAEditar.id)" required>
+      <input type="number" id="id" [(ngModel)]="departamentoAEditar.id" name="id" (change)="editarDepartamento(departamentoAEditar.id.toString())" required>
 
       <label for="nombre">Nombre:</label>
       <input type="text" id="nombre" [(ngModel)]="departamentoAEditar.name" name="nombre" required>
 
       <label for="descripcion">Descripción:</label>
       <input type="text" id="descripcion" [(ngModel)]="departamentoAEditar.description" name="descripcion">
+
+      <label for="Fecha de Creacion">Fecha de Creación:</label>
+      <input type="date" id="Fecha de Creacion" [(ngModel)]="departamentoAEditar.creationDate" name="Fecha de Creacion">
 
       <div class="modal-buttons">
         <button type="submit">Actualizar</button>
