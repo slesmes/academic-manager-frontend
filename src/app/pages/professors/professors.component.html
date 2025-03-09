@@ -3,24 +3,30 @@
 <div class="dashboard">
   <button (click)="mostrarFormulario = true">Crear Profesor</button>
   <button (click)="mostrarFormularioEdicion = true">Editar Profesor</button>
-  <button (click)="eliminarProfesor()">Eliminar Profesor</button>
-  <button (click)="obtenerProfesores()">Obtener Profesores</button>
+  <button (click)="mostrarFormularioEliminar = true">Eliminar Profesor</button>
+</div>
+
+<div class="searchbar">
+  <input type="text" placeholder="Buscar por ID" [(ngModel)]="profesorABuscar.id" (input)="buscarProfesor()">
 </div>
 
 <div *ngIf="mostrarFormulario" class="modal">
   <div class="modal-content">
     <span class="close" (click)="mostrarFormulario = false">&times;</span>
     <h3>Nuevo Profesor</h3>
-    <form (ngSubmit)="guardarProfesor()">
+    <form (ngSubmit)="crearProfesor()">
+      <label for="id">Cedula:</label>
+      <input type="text" id="id" [(ngModel)]="nuevoProfesor.id" name="id" required>
+
       <label for="nombre">Nombre:</label>
       <input type="text" id="nombre" [(ngModel)]="nuevoProfesor.name" name="nombre" required>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
-      <input type="date" id="fechaContratacion" [(ngModel)]="nuevoProfesor.hiredate" name="fechaContratacion" required>
+      <input type="date" id="fechaContratacion" [(ngModel)]="nuevoProfesor.hireDate" name="fechaContratacion" required>
 
-      <label for="departamento">Departamento:</label>
-      <select id="departamento" [(ngModel)]="nuevoProfesor.departamento" name="departamento" required>
-        <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
+      <label for="department">department:</label>
+      <select id="department" [(ngModel)]="nuevoProfesor.department" name="department" required>
+        <option *ngFor="let dept of " [value]="dept">{{ dept }}</option>
       </select>
 
       <div class="modal-buttons">
@@ -43,12 +49,7 @@
       <input type="text" id="nombre" [(ngModel)]="profesorAEditar.name" name="nombre" required>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
-      <input type="date" id="fechaContratacion" [(ngModel)]="profesorAEditar.hiredate" name="fechaContratacion" required>
-
-      <label for="departamento">Departamento:</label>
-      <select id="departamento" [(ngModel)]="profesorAEditar.departamento" name="departamento" required>
-        <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
-      </select>
+      <input type="date" id="fechaContratacion" [(ngModel)]="profesorAEditar.hireDate" name="fechaContratacion" required>
 
       <div class="modal-buttons">
         <button type="submit">Actualizar</button>
@@ -57,23 +58,38 @@
     </form>
   </div>
 </div>
+<div *ngIf="mostrarFormularioEliminar" class="modal">
+  <div class="modal-content">
+    <span class="close" (click)="mostrarFormularioEliminar = false">&times;</span>
+    <h3>Eliminar Departamento</h3>
+    <form (ngSubmit)="eliminarProfesor()">
+      <label for="id">ID:</label>
+      <input type="number" id="id" [(ngModel)]="profesorAEliminar.id" name="id" required>
 
-<table *ngIf="profesoresFiltrados.length > 0">
+      <div class="modal-buttons">
+        <button type="submit">Eliminar</button>
+        <button type="button" (click)="mostrarFormularioEliminar = false">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<table *ngIf="filteredProfessors.length > 0">
   <thead>
     <tr>
       <th>ID</th>
       <th>Nombre</th>
       <th>Fecha de Contratación</th>
-      <th>Departamento</th>
+      <th>department</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let prof of profesoresFiltrados">
+    <tr *ngFor="let prof of filteredProfessors">
       <td>{{ prof.id }}</td>
       <td>{{ prof.name }}</td>
-      <td>{{ prof.hiredate | date }}</td>
-      <td>{{ prof.departamento }}</td>
+      <td>{{ prof.hireDate | date }}</td>
+      <td>{{ prof.department.name }}</td>
     </tr>
   </tbody>
 </table>
-<p *ngIf="profesoresFiltrados.length === 0">No hay profesores asignados a este departamento.</p>
+<p *ngIf="filteredProfessors.length === 0">No hay profesores asignados a este department.</p>

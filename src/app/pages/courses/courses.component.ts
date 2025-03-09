@@ -26,9 +26,9 @@ export class CoursesComponent implements OnInit {
   mostrarFormularioEliminar: boolean = false;
   mostrarFormularioBuscar: boolean = false;
   nuevoCurso: CreateCourse = { name: '', description: '', professorId: '' };
-  cursoAEditar: Course = { id: 0, name: '', description: '', professor: { id: 0, name: '', hiredate: new Date() } };
-  cursoAEliminar: Course = { id: 0, name: '', description: '', professor: { id: 0, name: '', hiredate: new Date() } };
-  cursoABuscar: Course = { id: 0, name: '', description: '', professor: { id: 0, name: '', hiredate: new Date() } };
+  cursoAEditar: Course = { id: 0, name: '', description: '', professor: { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } } };
+  cursoAEliminar: Course = { id: 0, name: '', description: '', professor: { id: '', name: '', hireDate: new Date(),  department: { id: 0, name: '', description: '', creationDate: new Date() } } };
+  cursoABuscar: Course = { id: 0, name: '', description: '', professor: { id: '', name: '', hireDate: new Date(),  department: { id: 0, name: '', description: '', creationDate: new Date() } } };
 
   constructor(private courseService: CoursesService, private http: HttpClient) { }
 
