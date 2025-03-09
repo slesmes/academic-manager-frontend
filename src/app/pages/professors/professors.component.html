@@ -2,35 +2,55 @@
 
 <div class="dashboard">
   <button (click)="mostrarFormulario = true">Crear Profesor</button>
-  <button (click)="mostrarFormularioEdicion = true">Editar Profesor</button>
-  <button (click)="mostrarFormularioEliminar = true">Eliminar Profesor</button>
 </div>
 
 <div class="searchbar">
-  <input type="text" placeholder="Buscar por ID" [(ngModel)]="profesorABuscar.id" (input)="buscarProfesor()">
+  <input 
+    type="text" 
+    placeholder="Buscar por ID, Nombre o Departamento" 
+    [(ngModel)]="profesorABuscar.id" 
+    (input)="buscarProfesor()"
+  >
 </div>
 
 <div *ngIf="mostrarFormulario" class="modal">
   <div class="modal-content">
     <span class="close" (click)="mostrarFormulario = false">&times;</span>
     <h3>Nuevo Profesor</h3>
-    <form (ngSubmit)="crearProfesor()">
-      <label for="id">Cedula:</label>
-      <input type="text" id="id" [(ngModel)]="nuevoProfesor.id" name="id" required>
+    <form [formGroup]="professorForm" (ngSubmit)="crearProfesor()">
+      <label for="id">Cédula:</label>
+      <input type="text" id="id" formControlName="id" required maxlength="10">
+      <div *ngIf="professorForm.get('id')?.invalid && professorForm.get('id')?.touched">
+        <small class="form-error" *ngIf="professorForm.get('id')?.errors?.['required']">La cédula es requerida.</small>
+        <small class="form-error" *ngIf="professorForm.get('id')?.errors?.['pattern']">La cédula debe contener solo números.</small>
+      </div>
 
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" [(ngModel)]="nuevoProfesor.name" name="nombre" required>
+      <input type="text" id="nombre" formControlName="name" required maxlength="100">
+      <div *ngIf="professorForm.get('name')?.invalid && professorForm.get('name')?.touched">
+        <small class="form-error" *ngIf="professorForm.get('name')?.errors?.['required']">El nombre es requerido.</small>
+        <small class="form-error" *ngIf="professorForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+      </div>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
-      <input type="date" id="fechaContratacion" [(ngModel)]="nuevoProfesor.hireDate" name="fechaContratacion" required>
+      <input type="date" id="fechaContratacion" formControlName="hireDate" required>
+      <div *ngIf="professorForm.get('hireDate')?.invalid && professorForm.get('hireDate')?.touched">
+        <small class="form-error" *ngIf="professorForm.get('hireDate')?.errors?.['required']">La fecha de contratación es requerida.</small>
+      </div>
 
-      <label for="department">department:</label>
-      <select id="department" [(ngModel)]="nuevoProfesor.department" name="department" required>
-        <option *ngFor="let dept of " [value]="dept">{{ dept }}</option>
+      <label for="departamento">Departamento:</label>
+      <select id="departamento" formControlName="departmentId" required>
+        <option value="">Seleccione un departamento</option>
+        <option *ngFor="let dept of departments" [value]="dept.id">
+          {{ dept.name }}
+        </option>
       </select>
+      <div *ngIf="professorForm.get('departmentId')?.invalid && professorForm.get('departmentId')?.touched">
+        <small class="form-error" *ngIf="professorForm.get('departmentId')?.errors?.['required']">Debe seleccionar un departamento.</small>
+      </div>
 
       <div class="modal-buttons">
-        <button type="submit">Guardar</button>
+        <button type="submit" [disabled]="professorForm.invalid">Guardar</button>
         <button type="button" (click)="mostrarFormulario = false">Cancelar</button>
       </div>
     </form>
@@ -41,34 +61,41 @@
   <div class="modal-content">
     <span class="close" (click)="mostrarFormularioEdicion = false">&times;</span>
     <h3>Editar Profesor</h3>
-    <form (ngSubmit)="actualizarProfesor()">
-      <label for="id">ID:</label>
-      <input type="number" id="id" [(ngModel)]="profesorAEditar.id" name="id" (change)="editarProfesor(profesorAEditar.id)" required>
+    <form [formGroup]="editProfessorForm" (ngSubmit)="actualizarProfesor()">
+      <label for="id">Cédula:</label>
+      <input type="text" id="id" formControlName="id" required maxlength="10" readonly>
+      <div *ngIf="editProfessorForm.get('id')?.invalid && editProfessorForm.get('id')?.touched">
+        <small class="form-error" *ngIf="editProfessorForm.get('id')?.errors?.['required']">La cédula es requerida.</small>
+        <small class="form-error" *ngIf="editProfessorForm.get('id')?.errors?.['pattern']">La cédula debe contener solo números.</small>
+      </div>
 
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" [(ngModel)]="profesorAEditar.name" name="nombre" required>
+      <input type="text" id="nombre" formControlName="name" required maxlength="100">
+      <div *ngIf="editProfessorForm.get('name')?.invalid && editProfessorForm.get('name')?.touched">
+        <small class="form-error" *ngIf="editProfessorForm.get('name')?.errors?.['required']">El nombre es requerido.</small>
+        <small class="form-error" *ngIf="editProfessorForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+      </div>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
-      <input type="date" id="fechaContratacion" [(ngModel)]="profesorAEditar.hireDate" name="fechaContratacion" required>
-
-      <div class="modal-buttons">
-        <button type="submit">Actualizar</button>
-        <button type="button" (click)="mostrarFormularioEdicion = false">Cancelar</button>
+      <input type="date" id="fechaContratacion" formControlName="hireDate" required>
+      <div *ngIf="editProfessorForm.get('hireDate')?.invalid && editProfessorForm.get('hireDate')?.touched">
+        <small class="form-error" *ngIf="editProfessorForm.get('hireDate')?.errors?.['required']">La fecha de contratación es requerida.</small>
       </div>
-    </form>
-  </div>
-</div>
-<div *ngIf="mostrarFormularioEliminar" class="modal">
-  <div class="modal-content">
-    <span class="close" (click)="mostrarFormularioEliminar = false">&times;</span>
-    <h3>Eliminar Departamento</h3>
-    <form (ngSubmit)="eliminarProfesor()">
-      <label for="id">ID:</label>
-      <input type="number" id="id" [(ngModel)]="profesorAEliminar.id" name="id" required>
+
+      <label for="departamento">Departamento:</label>
+      <select id="departamento" formControlName="departmentId" required>
+        <option value="">Seleccione un departamento</option>
+        <option *ngFor="let dept of departments" [value]="dept.id">
+          {{ dept.name }}
+        </option>
+      </select>
+      <div *ngIf="editProfessorForm.get('departmentId')?.invalid && editProfessorForm.get('departmentId')?.touched">
+        <small class="form-error" *ngIf="editProfessorForm.get('departmentId')?.errors?.['required']">Debe seleccionar un departamento.</small>
+      </div>
 
       <div class="modal-buttons">
-        <button type="submit">Eliminar</button>
-        <button type="button" (click)="mostrarFormularioEliminar = false">Cancelar</button>
+        <button type="submit" [disabled]="editProfessorForm.invalid">Actualizar</button>
+        <button type="button" (click)="mostrarFormularioEdicion = false">Cancelar</button>
       </div>
     </form>
   </div>
@@ -77,10 +104,11 @@
 <table *ngIf="filteredProfessors.length > 0">
   <thead>
     <tr>
-      <th>ID</th>
+      <th>Cédula</th>
       <th>Nombre</th>
       <th>Fecha de Contratación</th>
-      <th>department</th>
+      <th>Departamento</th>
+      <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
@@ -89,7 +117,11 @@
       <td>{{ prof.name }}</td>
       <td>{{ prof.hireDate | date }}</td>
       <td>{{ prof.department.name }}</td>
+      <td class="actions-cell">
+        <button class="edit-button" (click)="editarProfesor(prof.id); mostrarFormularioEdicion = true">Editar</button>
+        <button class="delete-button" (click)="eliminarProfesor(prof.id)">Eliminar</button>
+      </td>
     </tr>
   </tbody>
 </table>
-<p *ngIf="filteredProfessors.length === 0">No hay profesores asignados a este department.</p>
+<p *ngIf="filteredProfessors.length === 0">No hay profesores disponibles.</p>

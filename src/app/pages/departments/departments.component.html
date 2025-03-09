@@ -2,54 +2,50 @@
 
 <div class="dashboard">
   <button (click)="mostrarFormulario = true">Crear Departamento</button>
-  <button (click)="mostrarFormularioEdicion = true">Editar Departamento</button>
-  <button (click)="mostrarFormularioEliminar = true">Eliminar Departamento</button>
 </div>
 
 <div class="searchbar">
-  <input type="text" placeholder="Buscar por ID" [(ngModel)]="departamentoABuscar.id" (input)="buscarDepartamento()">
+  <input 
+    type="text" 
+    placeholder="Buscar por ID, Nombre o Descripción" 
+    [(ngModel)]="departamentoABuscar.id" 
+    (input)="buscarDepartamento()"
+  >
 </div>
-
-<table *ngIf="filteredDepartments.length > 0">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre</th>
-      <th>Descripcion</th>
-      <th>Fecha de Creacion</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let dep of filteredDepartments">
-      <td>{{ dep.id }}</td>
-      <td>{{ dep.name }}</td>
-      <td>{{ dep.description}}</td>
-      <td>{{ dep.creationDate | date: 'shortDate'}}</td>
-    </tr>
-  </tbody>
-</table>
-<p *ngIf="filteredDepartments.length === 0">No hay departamentos asignados.</p>
 
 <div *ngIf="mostrarFormulario" class="modal">
   <div class="modal-content">
     <span class="close" (click)="mostrarFormulario = false">&times;</span>
     <h3>Nuevo Departamento</h3>
     <form [formGroup]="departamentoForm" (ngSubmit)="crearDepartamento()">
+      <label for="id">ID:</label>
+      <input type="text" id="id" formControlName="id" required maxlength="10">
+      <div *ngIf="departamentoForm.get('id')?.invalid && departamentoForm.get('id')?.touched">
+        <small class="form-error" *ngIf="departamentoForm.get('id')?.errors?.['required']">El ID es obligatorio.</small>
+        <small class="form-error" *ngIf="departamentoForm.get('id')?.errors?.['pattern']">El ID debe contener solo números.</small>
+      </div>
+
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" formControlName="name" required maxlength="30">
+      <input type="text" id="nombre" formControlName="name" required maxlength="100">
       <div *ngIf="departamentoForm.get('name')?.invalid && departamentoForm.get('name')?.touched">
-        <small *ngIf="departamentoForm.get('name')?.errors?.['required']">El nombre es obligatorio.</small>
-        <small *ngIf="departamentoForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+        <small class="form-error" *ngIf="departamentoForm.get('name')?.errors?.['required']">El nombre es obligatorio.</small>
+        <small class="form-error" *ngIf="departamentoForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
       </div>
 
       <label for="descripcion">Descripción:</label>
-      <input type="text" id="descripcion" formControlName="description" required maxlength="150">
+      <input type="text" id="descripcion" formControlName="description" required>
       <div *ngIf="departamentoForm.get('description')?.invalid && departamentoForm.get('description')?.touched">
-        <small *ngIf="departamentoForm.get('description')?.errors?.['required']">La descripción es obligatoria.</small>
+        <small class="form-error" *ngIf="departamentoForm.get('description')?.errors?.['required']">La descripción es obligatoria.</small>
+      </div>
+
+      <label for="fechaCreacion">Fecha de Creación:</label>
+      <input type="date" id="fechaCreacion" formControlName="creationDate" required>
+      <div *ngIf="departamentoForm.get('creationDate')?.invalid && departamentoForm.get('creationDate')?.touched">
+        <small class="form-error" *ngIf="departamentoForm.get('creationDate')?.errors?.['required']">La fecha de creación es obligatoria.</small>
       </div>
 
       <div class="modal-buttons">
-        <button type="submit">Guardar</button>
+        <button type="submit" [disabled]="departamentoForm.invalid">Guardar</button>
         <button type="button" (click)="mostrarFormulario = false">Cancelar</button>
       </div>
     </form>
@@ -62,48 +58,68 @@
     <h3>Editar Departamento</h3>
     <form [formGroup]="editarDepartamentoForm" (ngSubmit)="actualizarDepartamento()">
       <label for="id">ID:</label>
-      <input type="number" id="id"  formControlName="id" [(ngModel)]="departamentoAEditar.id" name="id" (change)="editarDepartamento(departamentoAEditar.id.toString())" required>
+      <input type="text" id="id" formControlName="id" required maxlength="10" readonly>
+      <div *ngIf="editarDepartamentoForm.get('id')?.invalid && editarDepartamentoForm.get('id')?.touched">
+        <small class="form-error" *ngIf="editarDepartamentoForm.get('id')?.errors?.['required']">El ID es obligatorio.</small>
+        <small class="form-error" *ngIf="editarDepartamentoForm.get('id')?.errors?.['pattern']">El ID debe contener solo números.</small>
+      </div>
+
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" formControlName="name" required maxlength="30">
+      <input type="text" id="nombre" formControlName="name" required maxlength="100">
       <div *ngIf="editarDepartamentoForm.get('name')?.invalid && editarDepartamentoForm.get('name')?.touched">
-        <small *ngIf="editarDepartamentoForm.get('name')?.errors?.['required']">El nombre es obligatorio.</small>
-        <small *ngIf="editarDepartamentoForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+        <small class="form-error" *ngIf="editarDepartamentoForm.get('name')?.errors?.['required']">El nombre es obligatorio.</small>
+        <small class="form-error" *ngIf="editarDepartamentoForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
       </div>
 
       <label for="descripcion">Descripción:</label>
-      <input type="text" id="descripcion" formControlName="description" required maxlength="150">
+      <input type="text" id="descripcion" formControlName="description" required>
       <div *ngIf="editarDepartamentoForm.get('description')?.invalid && editarDepartamentoForm.get('description')?.touched">
-        <small *ngIf="editarDepartamentoForm.get('description')?.errors?.['required']">La descripción es obligatoria.</small>
+        <small class="form-error" *ngIf="editarDepartamentoForm.get('description')?.errors?.['required']">La descripción es obligatoria.</small>
       </div>
 
-      <label for="Fecha de Creacion">Fecha de Creación:</label>
-      <input type="date" id="Fecha de Creacion" formControlName="creationDate" required>
+      <label for="fechaCreacion">Fecha de Creación:</label>
+      <input type="date" id="fechaCreacion" formControlName="creationDate" required>
       <div *ngIf="editarDepartamentoForm.get('creationDate')?.invalid && editarDepartamentoForm.get('creationDate')?.touched">
-        <small *ngIf="editarDepartamentoForm.get('creationDate')?.errors?.['required']">La fecha de creación es obligatoria.</small>
+        <small class="form-error" *ngIf="editarDepartamentoForm.get('creationDate')?.errors?.['required']">La fecha de creación es obligatoria.</small>
       </div>
 
       <div class="modal-buttons">
-        <button type="submit">Actualizar</button>
+        <button type="submit" [disabled]="editarDepartamentoForm.invalid">Actualizar</button>
         <button type="button" (click)="mostrarFormularioEdicion = false">Cancelar</button>
       </div>
     </form>
   </div>
 </div>
 
-<div *ngIf="mostrarFormularioEliminar" class="modal">
-  <div class="modal-content">
-    <span class="close" (click)="mostrarFormularioEliminar = false">&times;</span>
-    <h3>Eliminar Departamento</h3>
-    <form (ngSubmit)="eliminarDepartamento()">
-      <label for="id">ID:</label>
-      <input type="number" id="id" [(ngModel)]="departamentoAEliminar.id" name="id">
-
-      <div class="modal-buttons">
-        <button type="submit">Eliminar</button>
-        <button type="button" (click)="mostrarFormularioEliminar = false">Cancelar</button>
-      </div>
-    </form>
-  </div>
-</div>
+<table *ngIf="filteredDepartments.length > 0">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Descripción</th>
+      <th>Fecha de Creación</th>
+      <th>Profesores</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let dep of filteredDepartments">
+      <td>{{ dep.id }}</td>
+      <td>{{ dep.name }}</td>
+      <td>{{ dep.description }}</td>
+      <td>{{ dep.creationDate | date }}</td>
+      <td>
+        <a class="professor-count" (click)="navigateToProfessors(dep.id)">
+          {{ dep.professorCount }}
+        </a>
+      </td>
+      <td class="actions-cell">
+        <button class="edit-button" (click)="editarDepartamento(dep.id.toString()); mostrarFormularioEdicion = true">Editar</button>
+        <button class="delete-button" (click)="eliminarDepartamento(dep.id.toString())">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p *ngIf="filteredDepartments.length === 0">No hay departamentos disponibles.</p>
 
 

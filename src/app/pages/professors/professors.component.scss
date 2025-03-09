@@ -158,3 +158,52 @@ form {
     }
   }
 }
+
+.edit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #c82333;
+  }
+}
+
+select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+}
+
+small {
+  color: #dc3545;
+  font-size: 0.8em;
+  margin-top: -8px;
+  margin-bottom: 10px;
+  display: block;
+}
