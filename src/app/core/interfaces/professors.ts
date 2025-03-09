@@ -1,8 +1,8 @@
 import { Department } from "./departments";
 
 export interface Professor {
-    id: number;
+    id: string;
     name: string;
-    hiredate: Date;
-    departamento?: Department["name"];
+    hireDate: Date;
+    department: Department;
   }

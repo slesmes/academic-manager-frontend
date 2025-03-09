@@ -34,12 +34,19 @@
   <div class="modal-content">
     <span class="close" (click)="mostrarFormulario = false">&times;</span>
     <h3>Nuevo Departamento</h3>
-    <form (ngSubmit)="crearDepartamento()">
+    <form [formGroup]="departamentoForm" (ngSubmit)="crearDepartamento()">
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" [(ngModel)]="nuevoDepartamento.name" name="nombre" required>
+      <input type="text" id="nombre" formControlName="name" required maxlength="30">
+      <div *ngIf="departamentoForm.get('name')?.invalid && departamentoForm.get('name')?.touched">
+        <small *ngIf="departamentoForm.get('name')?.errors?.['required']">El nombre es obligatorio.</small>
+        <small *ngIf="departamentoForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+      </div>
 
       <label for="descripcion">Descripción:</label>
-      <input type="text" id="descripcion" [(ngModel)]="nuevoDepartamento.description" name="descripcion">
+      <input type="text" id="descripcion" formControlName="description" required maxlength="150">
+      <div *ngIf="departamentoForm.get('description')?.invalid && departamentoForm.get('description')?.touched">
+        <small *ngIf="departamentoForm.get('description')?.errors?.['required']">La descripción es obligatoria.</small>
+      </div>
 
       <div class="modal-buttons">
         <button type="submit">Guardar</button>
@@ -53,18 +60,27 @@
   <div class="modal-content">
     <span class="close" (click)="mostrarFormularioEdicion = false">&times;</span>
     <h3>Editar Departamento</h3>
-    <form (ngSubmit)="actualizarDepartamento()">
+    <form [formGroup]="editarDepartamentoForm" (ngSubmit)="actualizarDepartamento()">
       <label for="id">ID:</label>
-      <input type="number" id="id" [(ngModel)]="departamentoAEditar.id" name="id" (change)="editarDepartamento(departamentoAEditar.id.toString())" required>
-
+      <input type="number" id="id"  formControlName="id" [(ngModel)]="departamentoAEditar.id" name="id" (change)="editarDepartamento(departamentoAEditar.id.toString())" required>
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" [(ngModel)]="departamentoAEditar.name" name="nombre" required>
+      <input type="text" id="nombre" formControlName="name" required maxlength="30">
+      <div *ngIf="editarDepartamentoForm.get('name')?.invalid && editarDepartamentoForm.get('name')?.touched">
+        <small *ngIf="editarDepartamentoForm.get('name')?.errors?.['required']">El nombre es obligatorio.</small>
+        <small *ngIf="editarDepartamentoForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+      </div>
 
       <label for="descripcion">Descripción:</label>
-      <input type="text" id="descripcion" [(ngModel)]="departamentoAEditar.description" name="descripcion">
+      <input type="text" id="descripcion" formControlName="description" required maxlength="150">
+      <div *ngIf="editarDepartamentoForm.get('description')?.invalid && editarDepartamentoForm.get('description')?.touched">
+        <small *ngIf="editarDepartamentoForm.get('description')?.errors?.['required']">La descripción es obligatoria.</small>
+      </div>
 
       <label for="Fecha de Creacion">Fecha de Creación:</label>
-      <input type="date" id="Fecha de Creacion" [(ngModel)]="departamentoAEditar.creationDate" name="Fecha de Creacion">
+      <input type="date" id="Fecha de Creacion" formControlName="creationDate" required>
+      <div *ngIf="editarDepartamentoForm.get('creationDate')?.invalid && editarDepartamentoForm.get('creationDate')?.touched">
+        <small *ngIf="editarDepartamentoForm.get('creationDate')?.errors?.['required']">La fecha de creación es obligatoria.</small>
+      </div>
 
       <div class="modal-buttons">
         <button type="submit">Actualizar</button>
@@ -80,27 +96,11 @@
     <h3>Eliminar Departamento</h3>
     <form (ngSubmit)="eliminarDepartamento()">
       <label for="id">ID:</label>
-      <input type="number" id="id" [(ngModel)]="departamentoAEliminar.id" name="id" required>
+      <input type="number" id="id" [(ngModel)]="departamentoAEliminar.id" name="id">
 
       <div class="modal-buttons">
         <button type="submit">Eliminar</button>
         <button type="button" (click)="mostrarFormularioEliminar = false">Cancelar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div *ngIf="mostrarFormularioBuscar" class="modal">
-  <div class="modal-content">
-    <span class="close" (click)="mostrarFormularioBuscar = false">&times;</span>
-    <h3>Buscar Departamento</h3>
-    <form (ngSubmit)="buscarDepartamento()">
-      <label for="id">ID:</label>
-      <input type="number" id="id" [(ngModel)]="departamentoABuscar.id" name="id" required>
-
-      <div class="modal-buttons">
-        <button type="submit">Buscar</button>
-        <button type="button" (click)="mostrarFormularioBuscar = false">Cancelar</button>
       </div>
     </form>
   </div>

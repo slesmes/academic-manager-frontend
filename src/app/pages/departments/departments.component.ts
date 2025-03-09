@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Department } from '../../core/interfaces/departments';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DepartmentsService } from '../../core/services/departments.service';
 
@@ -9,14 +9,13 @@ import { DepartmentsService } from '../../core/services/departments.service';
   selector: 'app-departments',
   templateUrl: './departments.component.html',
   styleUrls: ['./departments.component.scss'],
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule]
 })
 export class DepartmentsComponent implements OnInit {
 
   departments: Department[] = [];
   filteredDepartments: Department[] = [];
   
-
   mostrarFormulario: boolean = false;
   mostrarFormularioEdicion: boolean = false;
   mostrarFormularioEliminar: boolean = false;
@@ -26,7 +25,22 @@ export class DepartmentsComponent implements OnInit {
   departamentoAEliminar: Department = { id: 0, name: '', description:"", creationDate: new Date() };
   departamentoABuscar: Partial<Department> = { id: 0 };
 
-  constructor(private departmentService:DepartmentsService) { }
+  departamentoForm: FormGroup;
+  editarDepartamentoForm: FormGroup;
+
+  constructor(private departmentService:DepartmentsService) {
+    this.departamentoForm = new FormGroup({
+      name: new FormControl('', [Validators.required, Validators.pattern('^[a-zA-Z ]*$')]),
+      description: new FormControl('', Validators.required)
+    });
+
+    this.editarDepartamentoForm = new FormGroup({
+      id: new FormControl('', Validators.required),
+      name: new FormControl('', [Validators.required, Validators.pattern('^[a-zA-Z ]*$')]),
+      description: new FormControl('', Validators.required),
+      creationDate: new FormControl('', Validators.required)
+    });
+  }
 
   ngOnInit(): void {
     this.departmentService.getDepartments().subscribe({
@@ -39,21 +53,24 @@ export class DepartmentsComponent implements OnInit {
         console.error('Error al obtener departamentos:', err);
       }
     });
-    
   }
 
-
   crearDepartamento() {
+    if (this.departamentoForm.invalid) {
+      alert('Por favor, complete todos los campos obligatorios correctamente.');
+      return;
+    }
+
     const payload: Omit<Department, 'id'> = {
-      name: this.nuevoDepartamento.name,
-      description: this.nuevoDepartamento.description,
+      name: this.departamentoForm.value.name,
+      description: this.departamentoForm.value.description,
       creationDate: new Date()
     };
   
     this.departmentService.createDepartment(payload as any).subscribe({
       next: (result) => {
         this.departments.push(result);
-        this.nuevoDepartamento = { id: 0, name: '', description: '', creationDate: new Date() };
+        this.departamentoForm.reset();
         this.mostrarFormulario = false;
       },
       error: (err) => {
@@ -61,16 +78,27 @@ export class DepartmentsComponent implements OnInit {
       }
     });
   }
-  
 
   editarDepartamento(codigo: string) {
     const department = this.departments.find(dep => dep.id === Number(codigo));
     if (department) {
       this.departamentoAEditar = { ...department };
+      this.editarDepartamentoForm.setValue({
+        id: this.departamentoAEditar.id,
+        name: this.departamentoAEditar.name,
+        description: this.departamentoAEditar.description,
+        creationDate: this.departamentoAEditar.creationDate
+      });
     } else {
       this.departmentService.getDepartmentById(codigo).subscribe({
         next: (result) => {
           this.departamentoAEditar = result;
+          this.editarDepartamentoForm.setValue({
+            id: this.departamentoAEditar.id,
+            name: this.departamentoAEditar.name,
+            description: this.departamentoAEditar.description,
+            creationDate: this.departamentoAEditar.creationDate
+          });
         },
         error: (err) => {
           console.error('Error al obtener departamento:', err);
@@ -80,7 +108,12 @@ export class DepartmentsComponent implements OnInit {
   }
 
   actualizarDepartamento(): void {
-    this.departmentService.updateDepartment(this.departamentoAEditar).subscribe({
+    if (this.editarDepartamentoForm.invalid) {
+      alert('Por favor, complete todos los campos obligatorios correctamente.');
+      return;
+    }
+
+    this.departmentService.updateDepartment(this.editarDepartamentoForm.value).subscribe({
       next: (updatedDepartment) => {
         console.log(updatedDepartment)
         const index = this.departments.findIndex(dep => dep.id === updatedDepartment.id);

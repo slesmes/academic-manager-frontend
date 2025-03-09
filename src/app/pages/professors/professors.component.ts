@@ -3,6 +3,7 @@ import { Professor } from '../../core/interfaces/professors';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { ProfessorsService } from '../../core/services/professors.service';
 
 @Component({
   selector: 'app-professors',
@@ -13,65 +14,76 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class ProfessorsComponent implements OnInit {
 
-  professors: Professor[] = [
-    { id: 1, name: 'Dr. Pérez', hiredate: new Date('2010-05-15'), departamento: 'Ingeniería' },
-    { id: 2, name: 'Lic. García', hiredate: new Date('2015-09-01'), departamento: 'Ciencias' }
-  ];
+  professors: Professor[] = [];
 
   mostrarFormulario: boolean = false;
   mostrarFormularioEdicion: boolean = false;
-  nuevoProfesor: Professor = { id: 0, name: '', hiredate: new Date(), departamento: '' };
-  profesorAEditar: Professor = { id: 0, name: '', hiredate: new Date(), departamento: '' };
-  profesoresFiltrados: Professor[] = [];
-  departamentos: string[] = ['Ingeniería', 'Ciencias', 'Matemáticas', 'Literatura'];
+  mostrarFormularioEliminar: boolean = false;
+  nuevoProfesor: Professor = { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } };
+  profesorAEditar: Professor = { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } };
+  profesorABuscar: Partial<Professor> = { id: '' };
+  profesorAEliminar: Professor = { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } };
+  filteredProfessors: Professor[] = [];
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(private professorService: ProfessorsService) { }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const profesoresIds = params['profesores'];
-      if (profesoresIds) {
-        this.filtrarProfesores(profesoresIds.split(',').map(Number));
-      } else {
-        this.profesoresFiltrados = this.professors;
-      }
-    });
-  }
-
-  guardarProfesor() {
-    this.professors.push({ ...this.nuevoProfesor });
-    this.nuevoProfesor = { id: 0, name: '', hiredate: new Date(), departamento: '' };
-    this.mostrarFormulario = false;
-  }
-
-  editarProfesor(id: number) {
-    const profesor = this.professors.find(p => p.id === id);
-    if (profesor) {
-      this.profesorAEditar = { ...profesor };
-      this.mostrarFormularioEdicion = true;
-    } else {
-      this.profesorAEditar = { id, name: 'No se encuentra', hiredate: new Date(), departamento: '' };
-      this.mostrarFormularioEdicion = true;
+      this.professorService.getProfessors().subscribe({
+        next: (result) => {
+          this.professors = result;
+          this.filteredProfessors = result; 
+        },
+        error: (err) => {
+          console.error('Error al obtener profesores:', err);
+        }
+      });
+      
     }
-  }
-
-  actualizarProfesor() {
-    const index = this.professors.findIndex(p => p.id === this.profesorAEditar.id);
-    if (index !== -1) {
-      this.professors[index] = { ...this.profesorAEditar };
-      this.mostrarFormularioEdicion = false;
+  
+  
+    crearProfesor() {
+      const payload= {
+        id: this.nuevoProfesor.id,
+        name: this.nuevoProfesor.name,
+        hireDate: new Date(),
+        department: this.nuevoProfesor.department
+      };
+  
+      this.professorService.createProfessor(payload as any).subscribe({
+        next: (result) => {
+          this.professors.push(result);
+          this.nuevoProfesor = { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } };
+          this.mostrarFormulario = false;
+        },
+        error: (err) => {
+          console.error('Error al crear profesor:', err);
+        }
+      });
     }
-  }
+    
+  
+    editarProfesor(codigo: string) {
 
-  eliminarProfesor() {
-    console.log('Eliminar Profesor');
-  }
-
-  obtenerProfesores() {
-    console.log('Obtener Profesores');
-  }
-
-  filtrarProfesores(ids: number[]) {
-    this.profesoresFiltrados = this.professors.filter(profesor => ids.includes(profesor.id));
-  }
+    }
+  
+    actualizarProfesor(): void {
+    }
+    
+    
+  
+    eliminarProfesor(): void {
+      this.professorService.deleteProfessor(this.profesorAEliminar.id).subscribe({
+        next: () => {
+          this.professors = this.professors.filter(dep => dep.id !== this.profesorAEliminar.id);
+          this.mostrarFormularioEliminar = false;
+        },
+        error: (err) => {
+          console.error('Error al eliminar profesor:', err);
+        }
+      });
+    }
+  
+    buscarProfesor(): void {
+      
+    }
 }
