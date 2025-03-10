@@ -1,36 +1,84 @@
 .login-container {
     max-width: 400px;
     margin: 50px auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 30px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-form div {
-    margin-bottom: 15px;
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 24px;
 }
 
-label {
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    div {
+        margin-bottom: 0;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 90%;
+            margin: 10px;
+            padding:12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+
+            &:focus {
+                outline: none;
+                border-color: #3a43c0;
+                box-shadow: 0 0 0 2px rgba(58, 67, 192, 0.1);
+            }
+        }
+
+        div {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background-color: #3a43c0;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: 10px;
+
+        &:hover {
+            background-color: #444edf;
+        }
+
+        &:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    }
+}
+
+:host {
     display: block;
-    margin-bottom: 5px;
-}
-
-input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-button {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+    min-height: 100vh;
+    background-color: #3a43c0;
+    padding: 20px;
 }

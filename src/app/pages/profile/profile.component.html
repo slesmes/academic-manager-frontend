@@ -34,7 +34,7 @@
     </div>
 
     <div class="user-info">
-      <p><strong>Rol:</strong> {{userInfo?.role === 'admin' ? 'Administrador' : 'Estudiante'}}</p>
+      <p><strong>Rol:</strong> {{getRoleText()}}</p>
       <p><strong>ID:</strong> {{userInfo?.sub}}</p>
     </div>
 
