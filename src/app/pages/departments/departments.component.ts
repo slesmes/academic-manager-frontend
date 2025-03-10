@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Department } from '../../core/interfaces/departments';
+import { Department, DepartmentDto } from '../../core/interfaces/departments';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -17,14 +17,14 @@ export class DepartmentsComponent implements OnInit {
 
   departments: (Department & { professorCount: number })[] = [];
   filteredDepartments: (Department & { professorCount: number })[] = [];
-  
+
   mostrarFormulario: boolean = false;
   mostrarFormularioEdicion: boolean = false;
   mostrarFormularioEliminar: boolean = false;
   mostrarFormularioBuscar: boolean = false;
-  nuevoDepartamento: Department = { id: 0, name: '', description:"", creationDate: new Date() };
-  departamentoAEditar: Department =  { id: 0, name: '', description:"", creationDate: new Date() };
-  departamentoAEliminar: Department = { id: 0, name: '', description:"", creationDate: new Date() };
+  nuevoDepartamento: DepartmentDto = { name: '', description: '' };
+  departamentoAEditar: Department = { id: 0, name: '', description: "", creationDate: new Date() };
+  departamentoAEliminar: Department = { id: 0, name: '', description: "", creationDate: new Date() };
   departamentoABuscar: Partial<Department> = { id: 0, name: '' };
 
   departamentoForm: FormGroup;
@@ -91,7 +91,7 @@ export class DepartmentsComponent implements OnInit {
 
     this.departmentService.createDepartment(payload).subscribe({
       next: (result) => {
-        this.departments.push({...result, professorCount: 0});
+        this.departments.push({ ...result, professorCount: 0 });
         this.filteredDepartments = [...this.departments];
         this.departamentoForm.reset();
         this.mostrarFormulario = false;
@@ -132,7 +132,7 @@ export class DepartmentsComponent implements OnInit {
       next: (result) => {
         const index = this.departments.findIndex(dep => dep.id === result.id);
         if (index !== -1) {
-          this.departments[index] = {...result, professorCount: this.departments[index].professorCount};
+          this.departments[index] = { ...result, professorCount: this.departments[index].professorCount };
           this.filteredDepartments = [...this.departments];
         }
         this.editarDepartamentoForm.reset();
@@ -145,7 +145,7 @@ export class DepartmentsComponent implements OnInit {
       }
     });
   }
-  
+
   eliminarDepartamento(id: string) {
     if (confirm('¿Está seguro que desea eliminar este departamento?')) {
       this.departmentService.deleteDepartment(id).subscribe({
@@ -171,7 +171,7 @@ export class DepartmentsComponent implements OnInit {
       return;
     }
 
-    this.filteredDepartments = this.departments.filter(dep => 
+    this.filteredDepartments = this.departments.filter(dep =>
       dep.id.toString().toLowerCase().includes(searchTerm) ||
       dep.name.toLowerCase().includes(searchTerm) ||
       dep.description.toLowerCase().includes(searchTerm)
@@ -179,7 +179,7 @@ export class DepartmentsComponent implements OnInit {
   }
 
   navigateToProfessors(departmentId: number) {
-    this.router.navigate(['/professors'], { 
+    this.router.navigate(['/professors'], {
       queryParams: { departmentId: departmentId }
     });
   }
