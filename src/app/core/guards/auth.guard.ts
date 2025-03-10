@@ -18,7 +18,8 @@ export class AuthGuard implements CanActivate {
     '/students',
     '/courses',
     '/enrollments',
-    '/evaluations'
+    '/evaluations',
+    '/course-groups'
   ];
 
   private professorRoutes = [

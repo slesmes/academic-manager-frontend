@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { CourseGroupsService } from '../../core/services/course-groups.service';
-import { Schedule, WeekDay } from '../../core/interfaces/schedule';
+import { Schedule, WeekDay, CreateScheduleDto } from '../../core/interfaces/schedule';
+import { CoursesService } from '../../core/services/courses.service';
 
 interface ScheduleForm {
     startTime: string;
@@ -25,14 +26,14 @@ interface ScheduleForm {
 export class SchedulesComponent implements OnInit {
     courseId: number = 0;
     groupId: number = 0;
-    schedules: Schedule[] = [];
+    horarios: Schedule[] = [];
     mostrarFormulario: boolean = false;
     errorMessage: string = '';
-    weekDays: WeekDay[] = [WeekDay.MONDAY, WeekDay.TUESDAY, WeekDay.WEDNESDAY, WeekDay.THURSDAY, WeekDay.FRIDAY, WeekDay.SATURDAY];
+    weekDays = Object.values(WeekDay);
 
     nuevoHorario: ScheduleForm = {
-        startTime: '14:00:00',
-        endTime: '16:00:00',
+        startTime: '',
+        endTime: '',
         weekDay: WeekDay.MONDAY,
         classroom: '',
         startDate: '',
@@ -41,7 +42,8 @@ export class SchedulesComponent implements OnInit {
 
     constructor(
         private route: ActivatedRoute,
-        private groupsService: CourseGroupsService
+        private groupsService: CourseGroupsService,
+        private coursesService: CoursesService
     ) { }
 
     ngOnInit(): void {
@@ -61,7 +63,7 @@ export class SchedulesComponent implements OnInit {
                 return;
             }
 
-            this.cargarHorarios();
+            this.loadSchedules();
         });
     }
 
@@ -76,15 +78,13 @@ export class SchedulesComponent implements OnInit {
         this.errorMessage = '';
     }
 
-    cargarHorarios() {
-        this.groupsService.getSchedulesByGroup(this.groupId).subscribe({
+    loadSchedules(): void {
+        this.coursesService.getGroupSchedules(this.courseId, this.groupId).subscribe({
             next: (schedules) => {
-                this.schedules = schedules;
-                console.log('Horarios cargados:', this.schedules);
+                this.horarios = schedules;
             },
-            error: (err) => {
-                console.error('Error al cargar horarios:', err);
-                this.errorMessage = 'Error al cargar los horarios';
+            error: (error) => {
+                console.error('Error loading schedules:', error);
             }
         });
     }
@@ -94,23 +94,13 @@ export class SchedulesComponent implements OnInit {
             return;
         }
 
-        const fechaBase = new Date();
-        const [horaInicio, minutoInicio] = this.nuevoHorario.startTime.split(':');
-        const [horaFin, minutoFin] = this.nuevoHorario.endTime.split(':');
-        
-        const startTime = new Date(fechaBase);
-        startTime.setHours(parseInt(horaInicio), parseInt(minutoInicio), 0);
-        
-        const endTime = new Date(fechaBase);
-        endTime.setHours(parseInt(horaFin), parseInt(minutoFin), 0);
-
-        const horarioDTO = {
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
+        const horarioDTO: CreateScheduleDto = {
+            startTime: this.nuevoHorario.startTime,
+            endTime: this.nuevoHorario.endTime,
             weekDay: this.nuevoHorario.weekDay,
             classroom: this.nuevoHorario.classroom,
-            startDate: new Date(this.nuevoHorario.startDate).toISOString(),
-            endDate: new Date(this.nuevoHorario.endDate).toISOString(),
+            startDate: this.nuevoHorario.startDate,
+            endDate: this.nuevoHorario.endDate,
             groupId: this.groupId
         };
 
@@ -118,7 +108,7 @@ export class SchedulesComponent implements OnInit {
         this.groupsService.createSchedule(horarioDTO).subscribe({
             next: () => {
                 console.log('Horario creado exitosamente');
-                this.cargarHorarios();
+                this.loadSchedules();
                 this.cerrarModal();
                 this.resetNuevoHorario();
             },
@@ -137,11 +127,15 @@ export class SchedulesComponent implements OnInit {
 
     private validarHorario(): boolean {
         if (!this.nuevoHorario.classroom.trim()) {
-            this.errorMessage = 'El salón es requerido';
+            this.errorMessage = 'El aula es requerida';
             return false;
         }
         if (!this.nuevoHorario.startDate || !this.nuevoHorario.endDate) {
             this.errorMessage = 'Las fechas de inicio y fin son requeridas';
+            return false;
+        }
+        if (!this.nuevoHorario.startTime || !this.nuevoHorario.endTime) {
+            this.errorMessage = 'Las horas de inicio y fin son requeridas';
             return false;
         }
         return true;
@@ -149,8 +143,8 @@ export class SchedulesComponent implements OnInit {
 
     private resetNuevoHorario() {
         this.nuevoHorario = {
-            startTime: '14:00:00',
-            endTime: '16:00:00',
+            startTime: '',
+            endTime: '',
             weekDay: WeekDay.MONDAY,
             classroom: '',
             startDate: '',

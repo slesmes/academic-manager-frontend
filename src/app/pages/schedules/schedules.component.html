@@ -11,14 +11,16 @@
     </div>
 
     <div class="schedules-grid">
-        <div class="schedule-card" *ngFor="let horario of schedules">
-            <div class="schedule-info">
+        <div class="schedule-card" *ngFor="let horario of horarios">
+            <div class="schedule-header">
                 <h3>{{horario.weekDay}}</h3>
-                <p>Hora inicio: {{horario.startTime}}</p>
-                <p>Hora fin: {{horario.endTime}}</p>
-                <p>Salón: {{horario.classroom}}</p>
-                <p>Desde: {{horario.startDate | date:'yyyy-MM-dd'}}</p>
-                <p>Hasta: {{horario.endDate | date:'yyyy-MM-dd'}}</p>
+            </div>
+            <div class="schedule-body">
+                <p>Hora inicio: {{horario.startTime | date:'HH:mm'}}</p>
+                <p>Hora fin: {{horario.endTime | date:'HH:mm'}}</p>
+                <p>Aula: {{horario.classroom}}</p>
+                <p>Desde: {{horario.startDate | date:'dd/MM/yyyy'}}</p>
+                <p>Hasta: {{horario.endDate | date:'dd/MM/yyyy'}}</p>
             </div>
         </div>
     </div>
@@ -41,15 +43,15 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Hora inicio</label>
-                        <input type="time" [(ngModel)]="nuevoHorario.startTime" name="startTime" required step="1">
+                        <input type="time" [(ngModel)]="nuevoHorario.startTime" name="startTime" required>
                     </div>
                     <div class="form-group">
                         <label>Hora fin</label>
-                        <input type="time" [(ngModel)]="nuevoHorario.endTime" name="endTime" required step="1">
+                        <input type="time" [(ngModel)]="nuevoHorario.endTime" name="endTime" required>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Salón</label>
+                    <label>Aula</label>
                     <input type="text" [(ngModel)]="nuevoHorario.classroom" name="classroom" required>
                 </div>
                 <div class="form-row">
