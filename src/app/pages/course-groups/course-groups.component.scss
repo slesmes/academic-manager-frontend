@@ -1,0 +1,240 @@
+// Variables
+$primary-color: #3b82f6;
+$secondary-color: #6b7280;
+$danger-color: #ef4444;
+$success-color: #22c55e;
+$background-color: #f3f4f6;
+$text-color: #1f2937;
+$border-radius: 8px;
+$transition-duration: 0.2s;
+
+@use "sass:color";
+
+// Mixins
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin card-shadow {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+// Estilos generales
+.groups-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+
+    .course-info {
+        h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: $text-color;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: $secondary-color;
+            font-size: 0.875rem;
+        }
+    }
+}
+
+// Grid de grupos
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+// Tarjeta de grupo
+.group-card {
+    background: white;
+    border-radius: $border-radius;
+    padding: 1.5rem;
+    @include card-shadow;
+    transition: transform $transition-duration ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    .group-info {
+        margin-bottom: 1rem;
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            h2 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .status-badge {
+                padding: 0.25rem 0.75rem;
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                background-color: $secondary-color;
+                color: white;
+
+                &.active {
+                    background-color: $success-color;
+                }
+            }
+        }
+
+        p {
+            color: $secondary-color;
+            margin-bottom: 0.25rem;
+        }
+    }
+
+    .group-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+}
+
+// Modal y Formulario
+.modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    @include flex-center;
+    z-index: 1000;
+
+    .modal-content {
+        background: white;
+        border-radius: $border-radius;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        position: relative;
+        z-index: 1001;
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+    }
+}
+
+// Formulario
+.form-group {
+    margin-bottom: 1rem;
+
+    label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid color.adjust($secondary-color, $lightness: 20%);
+        border-radius: $border-radius;
+        outline: none;
+
+        &:focus {
+            border-color: $primary-color;
+        }
+    }
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+// Botones
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: $border-radius;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color $transition-duration ease-in-out;
+    border: none;
+    outline: none;
+
+    &-primary {
+        background-color: $primary-color;
+        color: white;
+
+        &:hover {
+            background-color: color.adjust($primary-color, $lightness: -10%);
+        }
+    }
+
+    &-secondary {
+        background-color: $secondary-color;
+        color: white;
+
+        &:hover {
+            background-color: color.adjust($secondary-color, $lightness: -10%);
+        }
+    }
+
+    &-danger {
+        background-color: $danger-color;
+        color: white;
+
+        &:hover {
+            background-color: color.adjust($danger-color, $lightness: -10%);
+        }
+    }
+}
+
+.error-message {
+    background-color: #fee2e2;
+    border: 1px solid #ef4444;
+    color: #dc2626;
+    padding: 1rem;
+    border-radius: $border-radius;
+    margin-bottom: 1rem;
+}
+
+// Lista de horarios
+.schedules-list {
+    display: grid;
+    gap: 1rem;
+
+    .schedule-item {
+        background-color: $background-color;
+        padding: 1rem;
+        border-radius: $border-radius;
+
+        p {
+            margin-bottom: 0.5rem;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+} 

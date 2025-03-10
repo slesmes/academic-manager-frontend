@@ -1,27 +1,44 @@
-import { NgModule } from "@angular/core";
-import { RouterModule, Routes } from "@angular/router";
-import { CoursesComponent } from "./courses/courses.component";
-import { DepartmentsComponent } from "./departments/departments.component";
-import { EnrollmentsComponent } from "./enrollments/enrollments.component";
-import { EvaluationsComponent } from "./evaluations/evaluations.component";
-import { ProfessorsComponent } from "./professors/professors.component";
-import { StudentsComponent } from "./students/students.component";
-import { HomeComponent } from "./home/home.component";
-import { LoginComponent } from "./login/login.component";
+import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-    { path: "courses", component: CoursesComponent },
-    { path: "departments", component: DepartmentsComponent },
-    { path: "enrollments", component: EnrollmentsComponent },
-    { path: "evaluations", component: EvaluationsComponent },
-    { path: "professors", component: ProfessorsComponent },
-    { path: "students", component: StudentsComponent },
-    { path: "login", component: LoginComponent },
-    { path: "", component: HomeComponent }
+    { 
+        path: "courses", 
+        loadComponent: () => import('./courses/courses.component').then(m => m.CoursesComponent)
+    },
+    { 
+        path: "course-groups/course/:courseId", 
+        loadComponent: () => import('./course-groups/course-groups.component').then(m => m.CourseGroupsComponent)
+    },
+    { 
+        path: "course-groups/:courseId/:groupId/schedules", 
+        loadComponent: () => import('./schedules/schedules.component').then(m => m.SchedulesComponent)
+    },
+    { 
+        path: "departments", 
+        loadComponent: () => import('./departments/departments.component').then(m => m.DepartmentsComponent)
+    },
+    { 
+        path: "enrollments", 
+        loadComponent: () => import('./enrollments/enrollments.component').then(m => m.EnrollmentsComponent)
+    },
+    { 
+        path: "evaluations", 
+        loadComponent: () => import('./evaluations/evaluations.component').then(m => m.EvaluationsComponent)
+    },
+    { 
+        path: "professors", 
+        loadComponent: () => import('./professors/professors.component').then(m => m.ProfessorsComponent)
+    },
+    { 
+        path: "students", 
+        loadComponent: () => import('./students/students.component').then(m => m.StudentsComponent)
+    },
+    { 
+        path: "login", 
+        loadComponent: () => import('./login/login.component').then(m => m.LoginComponent)
+    },
+    { 
+        path: "", 
+        loadComponent: () => import('./home/home.component').then(m => m.HomeComponent)
+    }
 ];
-
-@NgModule({
-    imports: [RouterModule.forRoot(routes)],
-    exports: [RouterModule]
-    })
-export class AppRoutingModule {}

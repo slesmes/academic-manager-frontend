@@ -1,7 +1,8 @@
-import { Course } from "./courses";
+import { Course } from './courses';
 
 export interface Prerequisite {
     id: number;
-    actualCourse: Course;
-    prerequisiteCourse: Course;
+    actual_course_id: number;
+    prerequisite_course_id: number;
+    prerequisiteCourse?: Course;
 }

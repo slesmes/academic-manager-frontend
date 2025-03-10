@@ -1,0 +1,79 @@
+<div class="groups-container">
+    <div class="header">
+        <div class="course-info" *ngIf="course">
+            <h1>Grupos - {{course.name}}</h1>
+            <p class="description">{{course.description}}</p>
+        </div>
+        <button class="btn btn-primary" (click)="mostrarFormulario = true">
+            Crear Grupo
+        </button>
+    </div>
+
+    <div class="groups-grid">
+        <div class="group-card" *ngFor="let grupo of groups">
+            <div class="group-info">
+                <div class="group-header">
+                    <h2>{{grupo.name}}</h2>
+                    <span class="status-badge" [class.active]="grupo.isActive">
+                        {{grupo.isActive ? 'Activo' : 'Inactivo'}}
+                    </span>
+                </div>
+                <p>Capacidad: {{grupo.capacity}} estudiantes</p>
+                <p>Semestre: {{grupo.semester}} - {{grupo.year}}</p>
+            </div>
+            <div class="group-actions">
+                <button class="btn btn-secondary" (click)="toggleEstadoGrupo(grupo)">
+                    {{grupo.isActive ? 'Desactivar' : 'Activar'}}
+                </button>
+                <button class="btn btn-primary" (click)="irAGestionarHorarios(grupo.id)">
+                    Gestionar Horarios
+                </button>
+                <button class="btn btn-danger" (click)="eliminarGrupo(grupo.id)">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" *ngIf="mostrarFormulario">
+        <div class="modal-content">
+            <h2>Crear Nuevo Grupo</h2>
+            
+            <!-- Mensaje de Error -->
+            <div class="error-message" *ngIf="errorMessage">
+                {{errorMessage}}
+            </div>
+
+            <form (ngSubmit)="crearGrupo()">
+                <div class="form-group">
+                    <label>Nombre del Grupo</label>
+                    <input type="text" [(ngModel)]="nuevoGrupo.name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Capacidad</label>
+                    <input type="number" [(ngModel)]="nuevoGrupo.capacity" name="capacity" required min="1">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Semestre</label>
+                        <select [(ngModel)]="nuevoGrupo.semester" name="semester" required>
+                            <option *ngFor="let sem of semesters" [value]="sem">{{sem}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Año</label>
+                        <input type="number" [(ngModel)]="nuevoGrupo.year" name="year" [min]="currentYear" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" (click)="mostrarFormulario = false">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Crear
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> 
