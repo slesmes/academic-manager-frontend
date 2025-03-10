@@ -21,6 +21,13 @@ export class AuthGuard implements CanActivate {
     '/evaluations'
   ];
 
+  private professorRoutes = [
+    '/students',
+    '/courses',
+    '/evaluations',
+    '/profile'
+  ];
+
   private studentRoutes = [
     '/courses',
     '/enrollments',
@@ -51,17 +58,23 @@ export class AuthGuard implements CanActivate {
     }
 
     // Verificar permisos según el rol
-    if (userInfo.role === 'admin') {
-      return true; // Los admins tienen acceso a todo
-    } else if (userInfo.role === 'student') {
-      // Si es estudiante, verificar si tiene acceso a la ruta
-      if (!this.studentRoutes.includes(state.url)) {
-        return this.router.createUrlTree(['/profile']); // Redirigir a perfil si no tiene acceso
-      }
-      return true;
+    switch (userInfo.role) {
+      case 'admin':
+        return true; // Los admins tienen acceso a todo
+      case 'professor':
+        // Si es profesor, verificar si tiene acceso a la ruta
+        if (!this.professorRoutes.includes(state.url)) {
+          return this.router.createUrlTree(['/profile']); // Redirigir a perfil si no tiene acceso
+        }
+        return true;
+      case 'student':
+        // Si es estudiante, verificar si tiene acceso a la ruta
+        if (!this.studentRoutes.includes(state.url)) {
+          return this.router.createUrlTree(['/profile']); // Redirigir a perfil si no tiene acceso
+        }
+        return true;
+      default:
+        return this.router.createUrlTree(['/login']);
     }
-
-    // Por defecto, redirigir al login
-    return this.router.createUrlTree(['/login']);
   }
 } 

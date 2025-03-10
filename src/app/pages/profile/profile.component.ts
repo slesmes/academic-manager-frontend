@@ -40,6 +40,19 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  getRoleText(): string {
+    switch (this.userInfo?.role) {
+      case 'admin':
+        return 'Administrador';
+      case 'professor':
+        return 'Profesor';
+      case 'student':
+        return 'Estudiante';
+      default:
+        return 'Usuario';
+    }
+  }
+
   onSubmit() {
     if (this.profileForm.valid) {
       const formData = this.profileForm.value;

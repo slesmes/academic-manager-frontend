@@ -1,17 +1,30 @@
 <header>
     <nav>
       <div class="nav-links">
-        <ng-container *ngIf="isAdmin(); else studentMenu">
-          <a routerLink="/departments">Departamentos</a>
-          <a routerLink="/professors">Profesores</a>
-          <a routerLink="/students">Estudiantes</a>
-          <a routerLink="/courses">Cursos</a>
-          <a routerLink="/enrollments">Matrículas</a>
+        <ng-container [ngSwitch]="getUserRole()">
+          <!-- Menú de Administrador -->
+          <ng-container *ngSwitchCase="'admin'">
+            <a routerLink="/departments">Departamentos</a>
+            <a routerLink="/professors">Profesores</a>
+            <a routerLink="/students">Estudiantes</a>
+            <a routerLink="/courses">Cursos</a>
+            <a routerLink="/enrollments">Matrículas</a>
+            <a routerLink="/evaluations">Evaluaciones</a>
+          </ng-container>
+
+          <!-- Menú de Profesor -->
+          <ng-container *ngSwitchCase="'professor'">
+            <a routerLink="/students">Estudiantes</a>
+            <a routerLink="/courses">Cursos</a>
+            <a routerLink="/evaluations">Evaluaciones</a>
+          </ng-container>
+
+          <!-- Menú de Estudiante -->
+          <ng-container *ngSwitchCase="'student'">
+            <a routerLink="/courses">Cursos</a>
+            <a routerLink="/enrollments">Matrículas</a>
+          </ng-container>
         </ng-container>
-        <ng-template #studentMenu>
-          <a routerLink="/courses">Cursos</a>
-          <a routerLink="/enrollments">Matrículas</a>
-        </ng-template>
       </div>
 
       <div class="profile-container">

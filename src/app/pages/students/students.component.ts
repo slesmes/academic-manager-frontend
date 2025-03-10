@@ -6,6 +6,7 @@ import { StudentService } from '../../core/services/student.service';
 import { FormControl, Validators, FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-students',
@@ -21,6 +22,7 @@ export class StudentsComponent implements OnInit {
   mostrarFormulario: boolean = false;
   mostrarFormularioEdicion: boolean = false;
   estudianteABuscar: { searchTerm: string } = { searchTerm: '' };
+  isAdmin: boolean = false;
 
   studentForm: FormGroup;
   editStudentForm: FormGroup;
@@ -29,10 +31,13 @@ export class StudentsComponent implements OnInit {
   constructor(
     private studentService: StudentService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private authService: AuthService
   ) {
     this.studentForm = this.initializeStudentForm();
     this.editStudentForm = this.initializeEditStudentForm();
+    const userInfo = this.authService.getUserInfo();
+    this.isAdmin = userInfo?.role === 'admin';
   }
 
   private handleError(error: HttpErrorResponse): void {

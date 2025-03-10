@@ -23,6 +23,21 @@ export class HeaderComponent {
     return userInfo?.role === 'admin';
   }
 
+  isProfessor(): boolean {
+    const userInfo = this.authService.getUserInfo();
+    return userInfo?.role === 'professor';
+  }
+
+  isStudent(): boolean {
+    const userInfo = this.authService.getUserInfo();
+    return userInfo?.role === 'student';
+  }
+
+  getUserRole(): string {
+    const userInfo = this.authService.getUserInfo();
+    return userInfo?.role || '';
+  }
+
   toggleProfileMenu(): void {
     this.showProfileMenu = !this.showProfileMenu;
   }
@@ -33,7 +48,6 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    localStorage.removeItem('access_token');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 }
