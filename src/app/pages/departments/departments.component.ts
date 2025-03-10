@@ -60,7 +60,9 @@ export class DepartmentsComponent implements OnInit {
           next: (professors) => {
             this.departments = departments.map(dept => ({
               ...dept,
-              professorCount: professors.filter(prof => prof.department.id === dept.id).length
+              professorCount: professors.filter(
+                prof => prof.professor?.department?.id === dept.id
+              ).length
             }));
             this.filteredDepartments = [...this.departments];
           },

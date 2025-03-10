@@ -12,7 +12,8 @@ import { HttpClient } from '@angular/common/http';
   selector: 'app-courses',
   templateUrl: './courses.component.html',
   styleUrl: './courses.component.scss',
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule],
+  standalone: true
 })
 export class CoursesComponent implements OnInit {
   cursos: Course[] = [];
@@ -25,10 +26,33 @@ export class CoursesComponent implements OnInit {
   mostrarFormularioEdicion: boolean = false;
   mostrarFormularioEliminar: boolean = false;
   mostrarFormularioBuscar: boolean = false;
-  nuevoCurso: CreateCourse = { name: '', description: '', professorId: '' };
-  cursoAEditar: Course = { id: 0, name: '', description: '', professor: { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } } };
-  cursoAEliminar: Course = { id: 0, name: '', description: '', professor: { id: '', name: '', hireDate: new Date(),  department: { id: 0, name: '', description: '', creationDate: new Date() } } };
-  cursoABuscar: Course = { id: 0, name: '', description: '', professor: { id: '', name: '', hireDate: new Date(),  department: { id: 0, name: '', description: '', creationDate: new Date() } } };
+  nuevoCurso: CreateCourse = {
+    name: '',
+    description: '',
+    credits: 0,
+    code: '',
+    professorId: ''
+  };
+  cursoAEditar: Course = {
+    id: 0,
+    name: '',
+    description: '',
+    credits: 0,
+    code: '',
+    professor: undefined
+  };
+  cursoAEliminar: Course = {
+    id: 0,
+    name: '',
+    description: '',
+    credits: 0,
+    code: '',
+    professor: undefined
+  };
+  cursoABuscar: Partial<Course> = {
+    id: 0,
+    name: ''
+  };
 
   constructor(private courseService: CoursesService, private http: HttpClient) { }
 
