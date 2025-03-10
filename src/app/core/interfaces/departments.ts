@@ -6,3 +6,9 @@ export interface Department {
     description: string;
     creationDate: Date;
 }
+
+export interface DepartmentDto {
+
+    name: string;
+    description: string;
+}
