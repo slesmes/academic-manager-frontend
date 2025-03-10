@@ -87,7 +87,10 @@ export class DepartmentsComponent implements OnInit {
     }
 
     const payload = {
-      ...this.departamentoForm.value,
+      id: this.departments.length + 1,
+      name: this.departamentoForm.value.name.trim(),
+      description: this.departamentoForm.value.description.trim(),
+      creationDate: new Date().toISOString()
     };
 
     this.departmentService.createDepartment(payload).subscribe({
@@ -100,7 +103,10 @@ export class DepartmentsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al crear departamento:', err);
-        alert('Error al crear el departamento');
+        const errorMessage = Array.isArray(err.error.message) 
+          ? err.error.message.join(', ') 
+          : err.error.message || 'Error desconocido';
+        alert('Error al crear el departamento: ' + errorMessage);
       }
     });
   }
