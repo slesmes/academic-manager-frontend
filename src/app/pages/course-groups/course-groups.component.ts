@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { CourseGroupsService } from '../../core/services/course-groups.service';
 import { CoursesService } from '../../core/services/courses.service';
-import { CourseGroup } from '../../core/interfaces/course-groups';
-import { Course } from '../../core/interfaces/courses';
+import { CourseGroup, Course } from '../../core/interfaces/courses';
+import { Schedule, WeekDay, CreateScheduleDto } from '../../core/interfaces/schedule';
+import { HttpErrorResponse } from '@angular/common/http';
 
 interface CreateGroupDTO {
     name: string;
@@ -20,17 +21,24 @@ interface CreateGroupDTO {
     selector: 'app-course-groups',
     templateUrl: './course-groups.component.html',
     styleUrl: './course-groups.component.scss',
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, ReactiveFormsModule],
     standalone: true
 })
 export class CourseGroupsComponent implements OnInit {
     courseId: number = 0;
     course: Course | null = null;
     groups: CourseGroup[] = [];
+    schedules: { [key: number]: Schedule[] } = {};
     mostrarFormulario: boolean = false;
     errorMessage: string = '';
     currentYear: number = new Date().getFullYear();
     semesters: string[] = [`${this.currentYear}-1`, `${this.currentYear}-2`];
+    showGroupForm: boolean = false;
+    showScheduleForm: boolean = false;
+    courses: Course[] = [];
+    selectedCourse: Course | null = null;
+    selectedGroupId: number | null = null;
+    weekDays = Object.values(WeekDay);
 
     nuevoGrupo: CreateGroupDTO = {
         name: '',
@@ -40,12 +48,52 @@ export class CourseGroupsComponent implements OnInit {
         courseId: 0
     };
 
+    groupForm: FormGroup;
+    scheduleForm: FormGroup;
+
     constructor(
         private route: ActivatedRoute,
         private groupsService: CourseGroupsService,
         private coursesService: CoursesService,
-        private router: Router
-    ) { }
+        private router: Router,
+        private fb: FormBuilder
+    ) {
+        this.groupForm = this.initializeGroupForm();
+        this.scheduleForm = this.initializeScheduleForm();
+    }
+
+    private handleError(error: HttpErrorResponse): void {
+        console.error('Error:', error);
+        if (error.status === 401) {
+            console.log('Redirigiendo al login por error de autorización');
+            localStorage.removeItem('access_token');
+            this.router.navigate(['/login']);
+        } else {
+            console.error('Error en la operación:', error);
+            window.alert(error.error?.message || 'Error desconocido');
+        }
+    }
+
+    private initializeGroupForm(): FormGroup {
+        return this.fb.group({
+            name: ['', [Validators.required, Validators.maxLength(10)]],
+            capacity: ['', [Validators.required, Validators.min(1)]],
+            semester: ['', [Validators.required]],
+            year: ['', [Validators.required, Validators.min(2000)]],
+            isActive: [true]
+        });
+    }
+
+    private initializeScheduleForm(): FormGroup {
+        return this.fb.group({
+            weekDay: ['', Validators.required],
+            startTime: ['', Validators.required],
+            endTime: ['', Validators.required],
+            classroom: ['', Validators.required],
+            startDate: ['', Validators.required],
+            endDate: ['', Validators.required]
+        });
+    }
 
     ngOnInit(): void {
         console.log('CourseGroupsComponent inicializado');
@@ -64,7 +112,6 @@ export class CourseGroupsComponent implements OnInit {
 
             this.nuevoGrupo.courseId = this.courseId;
             this.cargarCurso();
-            this.cargarGrupos();
         });
     }
 
@@ -72,6 +119,8 @@ export class CourseGroupsComponent implements OnInit {
         this.coursesService.getCourseById(this.courseId).subscribe({
             next: (course) => {
                 this.course = course;
+                this.selectedCourse = course;
+                this.cargarGrupos();
             },
             error: (err) => {
                 console.error('Error al cargar el curso:', err);
@@ -81,14 +130,41 @@ export class CourseGroupsComponent implements OnInit {
     }
 
     cargarGrupos() {
-        this.groupsService.getGroupsByCourse(this.courseId).subscribe({
+        if (!this.course || !this.course.id) {
+            console.error('No hay curso seleccionado o el ID del curso es inválido');
+            this.errorMessage = 'Error: No se pudo cargar los grupos del curso';
+            return;
+        }
+        
+        this.groupsService.getGroupsByCourse(this.course.id).subscribe({
             next: (groups) => {
-                this.groups = groups;
+                this.groups = groups.map(group => ({
+                    ...group,
+                    course: this.course!,
+                    schedules: [],
+                    enrollments: []
+                }));
+                this.groups.forEach(group => this.loadSchedules(this.course!.id, group.id));
             },
             error: (err) => {
                 console.error('Error al cargar grupos:', err);
-                this.errorMessage = 'Error al cargar los grupos';
+                if (err.status === 401) {
+                    console.log('Error de autorización, redirigiendo al login');
+                    localStorage.removeItem('access_token');
+                    this.router.navigate(['/login']);
+                } else {
+                    this.errorMessage = 'Error al cargar los grupos';
+                }
             }
+        });
+    }
+
+    loadSchedules(courseId: number, groupId: number): void {
+        this.coursesService.getGroupSchedules(courseId, groupId).subscribe({
+            next: (schedules) => {
+                this.schedules[groupId] = schedules;
+            },
+            error: (error) => this.handleError(error)
         });
     }
 
@@ -176,5 +252,78 @@ export class CourseGroupsComponent implements OnInit {
                 console.error('Error al navegar:', err);
                 this.errorMessage = 'Error al navegar a la gestión de horarios';
             });
+    }
+
+    createGroup(): void {
+        if (this.groupForm.valid && this.course) {
+            const groupData: CreateGroupDTO = {
+                name: this.groupForm.value.name.trim(),
+                capacity: Number(this.groupForm.value.capacity),
+                semester: this.groupForm.value.semester,
+                year: Number(this.groupForm.value.year),
+                courseId: this.course.id
+            };
+
+            this.coursesService.createCourseGroup(this.course.id, groupData).subscribe({
+                next: (group) => {
+                    this.groups.push(group);
+                    this.showGroupForm = false;
+                    this.groupForm.reset();
+                    window.alert('Grupo creado exitosamente');
+                },
+                error: (error) => this.handleError(error)
+            });
+        }
+    }
+
+    addSchedule(): void {
+        if (this.scheduleForm.valid && this.course && this.selectedGroupId !== null) {
+            const formValue = this.scheduleForm.value;
+            const scheduleData: CreateScheduleDto = {
+                startTime: formValue.startTime,
+                endTime: formValue.endTime,
+                weekDay: formValue.weekDay as WeekDay,
+                classroom: formValue.classroom.trim(),
+                startDate: formValue.startDate,
+                endDate: formValue.endDate,
+                groupId: this.selectedGroupId
+            };
+
+            this.coursesService.addScheduleToGroup(
+                this.course.id,
+                this.selectedGroupId,
+                scheduleData
+            ).subscribe({
+                next: (schedule) => {
+                    if (!this.schedules[this.selectedGroupId!]) {
+                        this.schedules[this.selectedGroupId!] = [];
+                    }
+                    this.schedules[this.selectedGroupId!].push(schedule);
+                    this.showScheduleForm = false;
+                    this.scheduleForm.reset();
+                    window.alert('Horario agregado exitosamente');
+                },
+                error: (error) => this.handleError(error)
+            });
+        }
+    }
+
+    openScheduleForm(groupId: number): void {
+        this.selectedGroupId = groupId;
+        this.showScheduleForm = true;
+    }
+
+    onCourseSelect(courseId: string): void {
+        if (courseId) {
+            this.coursesService.getCourseById(parseInt(courseId)).subscribe({
+                next: (course) => {
+                    this.selectedCourse = course;
+                    this.cargarGrupos();
+                },
+                error: (error) => this.handleError(error)
+            });
+        } else {
+            this.selectedCourse = null;
+        }
     }
 } 

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { CoursesService } from '../../core/services/courses.service';
-import { Course, CreateCourse } from '../../core/interfaces/courses';
+import { Course, CreateCourseDto } from '../../core/interfaces/courses';
 
 @Component({
     selector: 'app-courses',
@@ -18,10 +18,11 @@ export class CoursesComponent implements OnInit {
     cursoSeleccionado: Course | null = null;
     errorMessage: string = '';
 
-    nuevoCurso: CreateCourse = {
+    nuevoCurso: CreateCourseDto = {
         name: '',
         description: '',
-        professorId: ''
+        professorId: '',
+        code: ''
     };
 
     constructor(
@@ -97,7 +98,8 @@ export class CoursesComponent implements OnInit {
         this.nuevoCurso = {
             name: '',
             description: '',
-            professorId: ''
+            professorId: '',
+            code: ''
         };
         this.errorMessage = '';
     }

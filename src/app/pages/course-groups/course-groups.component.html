@@ -1,79 +1,144 @@
-<div class="groups-container">
-    <div class="header">
-        <div class="course-info" *ngIf="course">
-            <h1>Grupos - {{course.name}}</h1>
-            <p class="description">{{course.description}}</p>
-        </div>
-        <button class="btn btn-primary" (click)="mostrarFormulario = true">
-            Crear Grupo
-        </button>
-    </div>
+<div class="course-groups-container">
+  <h2>Gestión de Grupos</h2>
 
-    <div class="groups-grid">
-        <div class="group-card" *ngFor="let grupo of groups">
-            <div class="group-info">
-                <div class="group-header">
-                    <h2>{{grupo.name}}</h2>
-                    <span class="status-badge" [class.active]="grupo.isActive">
-                        {{grupo.isActive ? 'Activo' : 'Inactivo'}}
-                    </span>
-                </div>
-                <p>Capacidad: {{grupo.capacity}} estudiantes</p>
-                <p>Semestre: {{grupo.semester}} - {{grupo.year}}</p>
-            </div>
-            <div class="group-actions">
-                <button class="btn btn-secondary" (click)="toggleEstadoGrupo(grupo)">
-                    {{grupo.isActive ? 'Desactivar' : 'Activar'}}
-                </button>
-                <button class="btn btn-primary" (click)="irAGestionarHorarios(grupo.id)">
-                    Gestionar Horarios
-                </button>
-                <button class="btn btn-danger" (click)="eliminarGrupo(grupo.id)">
-                    Eliminar
-                </button>
-            </div>
-        </div>
-    </div>
+  <!-- Información del Curso -->
+  <div class="course-info" *ngIf="course">
+    <h3>{{ course.name }}</h3>
+    <p>ID del Curso: {{ course.id }}</p>
+    <button class="add-button" (click)="showGroupForm = true">Crear Nuevo Grupo</button>
+  </div>
 
-    <div class="modal" *ngIf="mostrarFormulario">
-        <div class="modal-content">
-            <h2>Crear Nuevo Grupo</h2>
-            
-            <!-- Mensaje de Error -->
-            <div class="error-message" *ngIf="errorMessage">
-                {{errorMessage}}
-            </div>
-
-            <form (ngSubmit)="crearGrupo()">
-                <div class="form-group">
-                    <label>Nombre del Grupo</label>
-                    <input type="text" [(ngModel)]="nuevoGrupo.name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label>Capacidad</label>
-                    <input type="number" [(ngModel)]="nuevoGrupo.capacity" name="capacity" required min="1">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Semestre</label>
-                        <select [(ngModel)]="nuevoGrupo.semester" name="semester" required>
-                            <option *ngFor="let sem of semesters" [value]="sem">{{sem}}</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Año</label>
-                        <input type="number" [(ngModel)]="nuevoGrupo.year" name="year" [min]="currentYear" required>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" (click)="mostrarFormulario = false">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        Crear
-                    </button>
-                </div>
-            </form>
+  <!-- Formulario de Nuevo Grupo -->
+  <div class="modal" *ngIf="showGroupForm">
+    <div class="modal-content">
+      <h3>Crear Nuevo Grupo</h3>
+      <form [formGroup]="groupForm" (ngSubmit)="createGroup()">
+        <div class="form-group">
+          <label for="name">Nombre del Grupo:</label>
+          <input id="name" type="text" formControlName="name" maxlength="10">
+          <div class="error" *ngIf="groupForm.get('name')?.errors?.['required'] && groupForm.get('name')?.touched">
+            El nombre es requerido
+          </div>
         </div>
+
+        <div class="form-group">
+          <label for="capacity">Capacidad:</label>
+          <input id="capacity" type="number" formControlName="capacity" min="1">
+          <div class="error" *ngIf="groupForm.get('capacity')?.errors?.['required'] && groupForm.get('capacity')?.touched">
+            La capacidad es requerida
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="semester">Semestre:</label>
+          <select id="semester" formControlName="semester">
+            <option value="">Seleccione un semestre</option>
+            <option value="1">Primer Semestre</option>
+            <option value="2">Segundo Semestre</option>
+          </select>
+          <div class="error" *ngIf="groupForm.get('semester')?.errors?.['required'] && groupForm.get('semester')?.touched">
+            El semestre es requerido
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="year">Año:</label>
+          <input id="year" type="number" formControlName="year" min="2000">
+          <div class="error" *ngIf="groupForm.get('year')?.errors?.['required'] && groupForm.get('year')?.touched">
+            El año es requerido
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" formControlName="isActive">
+            Grupo Activo
+          </label>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="submit" [disabled]="groupForm.invalid">Guardar</button>
+          <button type="button" (click)="showGroupForm = false">Cancelar</button>
+        </div>
+      </form>
     </div>
+  </div>
+
+  <!-- Lista de Grupos -->
+  <div class="groups-list" *ngIf="course">
+    <div class="group-card" *ngFor="let group of groups">
+      <div class="group-header">
+        <h4>Grupo {{ group.name }}</h4>
+        <span [class.active]="group.isActive" [class.inactive]="!group.isActive">
+          {{ group.isActive ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+
+      <div class="group-details">
+        <p>Capacidad: {{ group.capacity }}</p>
+        <p>Semestre: {{ group.semester }}</p>
+        <p>Año: {{ group.year }}</p>
+      </div>
+
+      <!-- Horarios del Grupo -->
+      <div class="schedules">
+        <h5>Horarios</h5>
+        <div class="schedule-list">
+          <div class="schedule-item" *ngFor="let schedule of schedules[group.id] || []">
+            <p>{{ schedule.weekDay }}</p>
+            <p>{{ schedule.startTime | date:'HH:mm' }} - {{ schedule.endTime | date:'HH:mm' }}</p>
+            <p>Aula: {{ schedule.classroom }}</p>
+            <p>Periodo: {{ schedule.startDate | date:'dd/MM/yyyy' }} - {{ schedule.endDate | date:'dd/MM/yyyy' }}</p>
+          </div>
+        </div>
+        <button class="add-button" (click)="openScheduleForm(group.id)">Agregar Horario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de Nuevo Horario -->
+  <div class="modal" *ngIf="showScheduleForm">
+    <div class="modal-content">
+      <h3>Agregar Horario</h3>
+      <form [formGroup]="scheduleForm" (ngSubmit)="addSchedule()">
+        <div class="form-group">
+          <label for="weekDay">Día:</label>
+          <select id="weekDay" formControlName="weekDay">
+            <option value="">Seleccione un día</option>
+            <option [value]="day" *ngFor="let day of weekDays">{{day}}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="startTime">Hora de Inicio:</label>
+          <input id="startTime" type="time" formControlName="startTime">
+        </div>
+
+        <div class="form-group">
+          <label for="endTime">Hora de Fin:</label>
+          <input id="endTime" type="time" formControlName="endTime">
+        </div>
+
+        <div class="form-group">
+          <label for="classroom">Aula:</label>
+          <input id="classroom" type="text" formControlName="classroom">
+        </div>
+
+        <div class="form-group">
+          <label for="startDate">Fecha de Inicio:</label>
+          <input id="startDate" type="date" formControlName="startDate">
+        </div>
+
+        <div class="form-group">
+          <label for="endDate">Fecha de Fin:</label>
+          <input id="endDate" type="date" formControlName="endDate">
+        </div>
+
+        <div class="modal-buttons">
+          <button type="submit" [disabled]="scheduleForm.invalid">Guardar</button>
+          <button type="button" (click)="showScheduleForm = false">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div> 

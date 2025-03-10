@@ -1,3 +1,5 @@
+import { CourseGroup } from './courses';
+
 export enum WeekDay {
     MONDAY = 'MONDAY',
     TUESDAY = 'TUESDAY',
@@ -10,16 +12,16 @@ export enum WeekDay {
 
 export interface Schedule {
     id: number;
-    startTime: string;  // Formato HH:mm
-    endTime: string;    // Formato HH:mm
+    startTime: Date;
+    endTime: Date;
     weekDay: WeekDay;
     classroom: string;
-    startDate: string;  // Formato YYYY-MM-DD
-    endDate: string;    // Formato YYYY-MM-DD
-    group_id: number;
+    startDate: Date;
+    endDate: Date;
+    group: any; // CourseGroup reference
 }
 
-export interface CreateSchedule {
+export interface CreateScheduleDto {
     startTime: string;
     endTime: string;
     weekDay: WeekDay;
@@ -27,4 +29,13 @@ export interface CreateSchedule {
     startDate: string;
     endDate: string;
     groupId: number;
+}
+
+export interface UpdateScheduleDto {
+    startTime?: string;
+    endTime?: string;
+    weekDay?: WeekDay;
+    classroom?: string;
+    startDate?: string;
+    endDate?: string;
 }

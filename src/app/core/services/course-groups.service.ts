@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CourseGroup, CreateCourseGroup } from '../interfaces/course-groups';
-import { Schedule, CreateSchedule } from '../interfaces/schedule';
+import { Schedule, CreateScheduleDto } from '../interfaces/schedule';
 import { environment } from '../../../environments/environment';
 
 interface CreateGroupDTO {
@@ -60,7 +60,7 @@ export class CourseGroupsService {
         return this.http.get<Schedule[]>(`${this.scheduleUrl}/group/${groupId}`);
     }
 
-    createSchedule(schedule: CreateSchedule): Observable<Schedule> {
+    createSchedule(schedule: CreateScheduleDto): Observable<Schedule> {
         return this.http.post<Schedule>(this.scheduleUrl, schedule);
     }
 

@@ -9,6 +9,8 @@ import { StudentsComponent } from "./pages/students/students.component";
 import { LoginComponent } from "./pages/login/login.component";
 import { ProfileComponent } from "./pages/profile/profile.component";
 import { AuthGuard } from "./core/guards/auth.guard";
+import {CourseGroupsComponent} from './pages/course-groups/course-groups.component';
+import {SchedulesComponent} from './pages/schedules/schedules.component';
 
 export const routes: Routes = [
     { path: "login", component: LoginComponent },
@@ -19,6 +21,9 @@ export const routes: Routes = [
     { path: "professors", component: ProfessorsComponent, canActivate: [AuthGuard] },
     { path: "students", component: StudentsComponent, canActivate: [AuthGuard] },
     { path: "profile", component: ProfileComponent, canActivate: [AuthGuard] },
+    { path: "course-groups", component: CourseGroupsComponent, canActivate: [AuthGuard] },
+    { path: "course-groups/course/:courseId",  component: CourseGroupsComponent, canActivate: [AuthGuard] },
+    {  path: "course-groups/:courseId/:groupId/schedules",  component: SchedulesComponent, canActivate: [AuthGuard]},
     { path: "", redirectTo: "profile", pathMatch: "full" },
     { path: "**", redirectTo: "profile" }
 ];
