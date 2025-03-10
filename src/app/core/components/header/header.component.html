@@ -1,25 +1,35 @@
 <header>
     <nav>
-      <ul>
-        <li>
-          <button (click)="navegar('departments')">Departamentos</button>
-        </li>
-        <li>
-          <button (click)="navegar('professors')">Profesores</button>
-        </li>
-        <li>
-          <button (click)="navegar('students')">Estudiantes</button>
-        </li>
-        <li>
-          <button (click)="navegar('courses')">Cursos</button>
-        </li>
-        <li>
-          <button (click)="navegar('enrollments')">Matrículas</button>
-        </li>
-        <li>
-          <button (click)="navegar('evaluations')">Evaluaciones</button>
-        </li>
-      </ul>
+      <div class="nav-links">
+        <ng-container *ngIf="isAdmin(); else studentMenu">
+          <a routerLink="/departments">Departamentos</a>
+          <a routerLink="/professors">Profesores</a>
+          <a routerLink="/students">Estudiantes</a>
+          <a routerLink="/courses">Cursos</a>
+          <a routerLink="/enrollments">Matrículas</a>
+        </ng-container>
+        <ng-template #studentMenu>
+          <a routerLink="/courses">Cursos</a>
+          <a routerLink="/enrollments">Matrículas</a>
+        </ng-template>
+      </div>
+
+      <div class="profile-container">
+        <div class="profile-icon" (click)="toggleProfileMenu()">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        
+        <div class="profile-menu" *ngIf="showProfileMenu">
+          <div class="menu-item" (click)="editProfile()">
+            <i class="fas fa-user-edit"></i>
+            <span>Editar Perfil</span>
+          </div>
+          <div class="menu-item" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+          </div>
+        </div>
+      </div>
     </nav>
   </header>
   
