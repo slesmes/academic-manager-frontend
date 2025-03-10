@@ -1,36 +1,48 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Course, CreateCourse } from '../interfaces/courses';
-import { Prerequisite } from '../interfaces/prerequisite';
 import { Schedule } from '../interfaces/schedule';
+import { Prerequisite } from '../interfaces/prerequisite';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class CoursesService {
+    private apiUrl = `${environment.apiUrl}/courses`;
 
-  private apiUrl = 'http://localhost:3000';
+    constructor(private http: HttpClient) { }
 
-  constructor(private http: HttpClient) { }
+    getCourses(): Observable<Course[]> {
+        return this.http.get<Course[]>(this.apiUrl);
+    }
 
-  getCourses(): Observable<Course[]> {
-    return this.http.get<Course[]>(`${this.apiUrl}/courses`);
-  }
+    getCourseById(id: number): Observable<Course> {
+        return this.http.get<Course>(`${this.apiUrl}/${id}`);
+    }
 
-  getPreRequisitesByCourseId(courseId: number): Observable<Prerequisite[]> {
-    return this.http.get<Prerequisite[]>(`${this.apiUrl}/prerequisites/course/${courseId}`);
-  }
+    createCourse(course: CreateCourse): Observable<Course> {
+        return this.http.post<Course>(this.apiUrl, course);
+    }
 
-  getSchedulesByCourseId(courseId: number): Observable<Schedule[]> {
-    return this.http.get<Schedule[]>(`${this.apiUrl}/schedules/course/${courseId}`);
-  }
+    updateCourse(id: number, course: Partial<Course>): Observable<Course> {
+        return this.http.patch<Course>(`${this.apiUrl}/${id}`, course);
+    }
 
-  createCourse(course: CreateCourse): Observable<CreateCourse> {
-    return this.http.post<CreateCourse>(`${this.apiUrl}/courses`, course);
-  }
+    deleteCourse(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    }
 
-  deleteCourse(courseId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/courses/${courseId}`);
-  }
+    getPreRequisitesByCourseId(courseId: number): Observable<Prerequisite[]> {
+        return this.http.get<Prerequisite[]>(`${this.apiUrl}/${courseId}/prerequisites`);
+    }
+
+    addPrerequisite(courseId: number, prerequisiteId: number): Observable<Prerequisite> {
+        return this.http.post<Prerequisite>(`${this.apiUrl}/${courseId}/prerequisites`, { prerequisite_course_id: prerequisiteId });
+    }
+
+    removePrerequisite(courseId: number, prerequisiteId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${courseId}/prerequisites/${prerequisiteId}`);
+    }
 }

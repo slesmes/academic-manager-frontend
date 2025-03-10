@@ -5,32 +5,13 @@ export interface Course {
     id: number;
     name: string;
     description: string;
-    credits: number;
-    code: string;
-    professor?: {
-        id: string;
-        name: string;
-        email: string;
-        role: string;
-        professor: {
-            id: string;
-            hireDate: string;
-            department: {
-                id: number;
-                name: string;
-                description: string;
-            };
-        };
-    };
-    students?: Student[];
+    professor: Professor;
 }
 
 export interface CreateCourse {
     name: string;
     description: string;
-    credits: number;
-    code: string;
-    professorId?: string;
+    professorId: string;
 }
 
 export interface Schedule {

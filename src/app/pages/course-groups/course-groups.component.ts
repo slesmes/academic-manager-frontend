@@ -1,0 +1,180 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { CourseGroupsService } from '../../core/services/course-groups.service';
+import { CoursesService } from '../../core/services/courses.service';
+import { CourseGroup } from '../../core/interfaces/course-groups';
+import { Course } from '../../core/interfaces/courses';
+
+interface CreateGroupDTO {
+    name: string;
+    capacity: number;
+    semester: string;
+    year: number;
+    courseId: number;
+}
+
+@Component({
+    selector: 'app-course-groups',
+    templateUrl: './course-groups.component.html',
+    styleUrl: './course-groups.component.scss',
+    imports: [CommonModule, FormsModule, RouterModule],
+    standalone: true
+})
+export class CourseGroupsComponent implements OnInit {
+    courseId: number = 0;
+    course: Course | null = null;
+    groups: CourseGroup[] = [];
+    mostrarFormulario: boolean = false;
+    errorMessage: string = '';
+    currentYear: number = new Date().getFullYear();
+    semesters: string[] = [`${this.currentYear}-1`, `${this.currentYear}-2`];
+
+    nuevoGrupo: CreateGroupDTO = {
+        name: '',
+        capacity: 0,
+        semester: `${this.currentYear}-1`,
+        year: this.currentYear,
+        courseId: 0
+    };
+
+    constructor(
+        private route: ActivatedRoute,
+        private groupsService: CourseGroupsService,
+        private coursesService: CoursesService,
+        private router: Router
+    ) { }
+
+    ngOnInit(): void {
+        console.log('CourseGroupsComponent inicializado');
+        
+        this.route.params.subscribe(params => {
+            console.log('Parámetros recibidos:', params);
+            
+            this.courseId = +params['courseId'];
+            console.log('ID del curso extraído:', this.courseId);
+            
+            if (!this.courseId) {
+                console.error('ID de curso inválido');
+                this.errorMessage = 'ID de curso inválido';
+                return;
+            }
+
+            this.nuevoGrupo.courseId = this.courseId;
+            this.cargarCurso();
+            this.cargarGrupos();
+        });
+    }
+
+    cargarCurso() {
+        this.coursesService.getCourseById(this.courseId).subscribe({
+            next: (course) => {
+                this.course = course;
+            },
+            error: (err) => {
+                console.error('Error al cargar el curso:', err);
+                this.errorMessage = 'Error al cargar el curso';
+            }
+        });
+    }
+
+    cargarGrupos() {
+        this.groupsService.getGroupsByCourse(this.courseId).subscribe({
+            next: (groups) => {
+                this.groups = groups;
+            },
+            error: (err) => {
+                console.error('Error al cargar grupos:', err);
+                this.errorMessage = 'Error al cargar los grupos';
+            }
+        });
+    }
+
+    crearGrupo() {
+        if (!this.validarGrupo()) {
+            return;
+        }
+
+        this.nuevoGrupo.courseId = this.courseId;
+        this.groupsService.createGroup(this.nuevoGrupo).subscribe({
+            next: () => {
+                this.cargarGrupos();
+                this.mostrarFormulario = false;
+                this.resetNuevoGrupo();
+            },
+            error: (err) => {
+                console.error('Error al crear grupo:', err);
+                if (err.error && err.error.message) {
+                    this.errorMessage = Array.isArray(err.error.message) 
+                        ? err.error.message.join(', ') 
+                        : err.error.message;
+                } else {
+                    this.errorMessage = 'Error al crear el grupo';
+                }
+            }
+        });
+    }
+
+    eliminarGrupo(id: number) {
+        // if (confirm('¿Está seguro de eliminar este grupo?')) {
+        //     this.groupsService.deleteGroup(id).subscribe({
+        //         next: () => {
+        //             this.cargarGrupos();
+        //         },
+        //         error: (err) => {
+        //             console.error('Error al eliminar grupo:', err);
+        //             this.errorMessage = 'Error al eliminar el grupo';
+        //         }
+        //     });
+        // }
+    }
+
+    toggleEstadoGrupo(group: CourseGroup) {
+        // this.groupsService.updateGroup(group.id, { isActive: !group.isActive }).subscribe({
+        //     next: () => {
+        //         this.cargarGrupos();
+        //     },
+        //     error: (err) => {
+        //         console.error('Error al actualizar estado del grupo:', err);
+        //         this.errorMessage = 'Error al actualizar el estado del grupo';
+        //     }
+        // });
+    }
+
+    private validarGrupo(): boolean {
+        if (!this.nuevoGrupo.name.trim()) {
+            this.errorMessage = 'El nombre del grupo es requerido';
+            return false;
+        }
+        if (this.nuevoGrupo.capacity <= 0) {
+            this.errorMessage = 'La capacidad debe ser mayor a 0';
+            return false;
+        }
+        return true;
+    }
+
+    private resetNuevoGrupo() {
+        this.nuevoGrupo = {
+            name: '',
+            capacity: 0,
+            semester: `${this.currentYear}-1`,
+            year: this.currentYear,
+            courseId: this.courseId
+        };
+        this.errorMessage = '';
+    }
+
+    irAGestionarHorarios(groupId: number) {
+        console.log('Intentando navegar a horarios del grupo:', groupId);
+        this.router.navigate(['/course-groups', this.courseId, groupId, 'schedules'])
+            .then(() => {
+                console.log('Navegación exitosa a horarios');
+            })
+            .catch(err => {
+                console.error('Error al navegar:', err);
+                this.errorMessage = 'Error al navegar a la gestión de horarios';
+            });
+    }
+} 
