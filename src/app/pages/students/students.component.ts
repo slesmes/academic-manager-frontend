@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Student } from '../../core/interfaces/students';
+import { Student, CreateStudentDto, UpdateStudentDto } from '../../core/interfaces/students';
 import { StudentService } from '../../core/services/student.service';
 import { FormControl, Validators, FormBuilder, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-students',
@@ -13,138 +15,175 @@ import { FormControl, Validators, FormBuilder, FormGroup } from '@angular/forms'
   imports: [CommonModule, FormsModule, ReactiveFormsModule]
 })
 export class StudentsComponent implements OnInit {
-
   students: Student[] = [];
+  filteredStudents: Student[] = [];
+  
   mostrarFormulario: boolean = false;
   mostrarFormularioEdicion: boolean = false;
-  mostrarFormularioEliminar: boolean = false;
-  nuevoEstudiante: Student = { id: '', name: '', lastname:'', birthdate: new Date() };
-  estudianteAEditar: Student = { id: '', name: '', lastname:'', birthdate: new Date() };
-  estudianteABuscar: Partial<Student> = { id: '' };
-  estudianteAEliminar: Student = { id: '', name: '', lastname:'', birthdate: new Date() };
-  filteredestudiante: Student[] = [];
+  estudianteABuscar: { searchTerm: string } = { searchTerm: '' };
+
   studentForm: FormGroup;
   editStudentForm: FormGroup;
+  private selectedStudentId: string = '';
 
-  constructor(private studentservice: StudentService, private fb: FormBuilder) {
-    this.studentForm = this.fb.group({
+  constructor(
+    private studentService: StudentService,
+    private router: Router,
+    private fb: FormBuilder
+  ) {
+    this.studentForm = this.initializeStudentForm();
+    this.editStudentForm = this.initializeEditStudentForm();
+  }
+
+  private handleError(error: HttpErrorResponse): void {
+    console.error('Error:', error);
+    if (error.status === 401) {
+      console.log('Redirigiendo al login por error de autorización');
+      localStorage.removeItem('access_token');
+      this.router.navigate(['/login']);
+    } else {
+      console.error('Error en la operación:', error);
+      window.alert(error.error?.message || 'Error desconocido');
+    }
+  }
+
+  private formatDate(date: string): string {
+    return date.split('T')[0];
+  }
+
+  private initializeStudentForm(): FormGroup {
+    return this.fb.group({
       id: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
-      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+$')]],
-      lastname: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+$')]],
+      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
+      lastname: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],
       birthdate: ['', Validators.required]
     });
+  }
 
-    this.editStudentForm = this.fb.group({
-      id: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
-      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+$')]],
-      lastname: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+$')]],
+  private initializeEditStudentForm(): FormGroup {
+    return this.fb.group({
+      name: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],
+      email: ['', [Validators.required, Validators.email]],
+      lastname: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],
       birthdate: ['', Validators.required]
     });
   }
 
   ngOnInit(): void {
-    this.studentservice.getStudent().subscribe({
+    this.studentService.getStudent().subscribe({
       next: (result) => {
         this.students = result;
-        this.filteredestudiante = result; 
+        this.filteredStudents = result;
       },
-      error: (err) => {
-        console.error('Error al obtener departamentos:', err);
-      }
+      error: (err) => this.handleError(err)
     });
   }
 
   crearEstudiante() {
+    if (this.studentForm.valid) {
+      const formValue = this.studentForm.value;
+      const newStudent: CreateStudentDto = {
+        id: formValue.id,
+        name: formValue.name.trim(),
+        email: formValue.email.trim(),
+        password: formValue.password,
+        role: 'student',
+        student: {
+          lastname: formValue.lastname.trim(),
+          birthdate: this.formatDate(formValue.birthdate)
+        }
+      };
 
-    if (this.studentForm.invalid) {
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
-      this.studentForm.markAllAsTouched();
-      return;
+      this.studentService.createStudent(newStudent).subscribe({
+        next: (result) => {
+          this.students.push(result);
+          this.filteredStudents = [...this.students];
+          this.studentForm.reset();
+          this.mostrarFormulario = false;
+          window.alert('Estudiante creado exitosamente');
+        },
+        error: (err) => this.handleError(err)
+      });
+    } else {
+      window.alert('Por favor, complete todos los campos requeridos correctamente.');
     }
-
-    const payload = this.studentForm.value;
-
-    this.studentservice.createStudent(payload as any).subscribe({
-      next: (result) => {
-        this.students.push(result);
-        this.studentForm.reset();
-        this.mostrarFormulario = false;
-      },
-      error: (err) => {
-        console.error('Error al crear estudiante:', err);
-      }
-    });
   }
 
   editarEstudiante(id: string) {
+    this.selectedStudentId = id;
     const student = this.students.find(s => s.id === id);
-    if (student) {
-      this.estudianteAEditar = { ...student };
+    if (student && student.student) {
       this.editStudentForm.patchValue({
-        id: student.id,
         name: student.name,
-        lastname: student.lastname,
-        birthdate: student.birthdate
+        email: student.email,
+        lastname: student.student.lastname,
+        birthdate: this.formatDate(student.student.birthdate)
       });
+      this.mostrarFormularioEdicion = true;
+    } else {
+      window.alert('No se encontró la información completa del estudiante');
     }
   }
 
   actualizarEstudiante() {
-    if (this.editStudentForm.invalid) {
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
-      this.editStudentForm.markAllAsTouched();
-      return;
-    }
-
-    const payload = {
-      ...this.editStudentForm.value,
-      birthdate: new Date(this.editStudentForm.value.birthdate)
-    };
-
-    this.studentservice.updateStudent(payload).subscribe({
-      next: (result) => {
-        const index = this.students.findIndex(s => s.id === result.id);
-        if (index !== -1) {
-          this.students[index] = result;
-          this.filteredestudiante = [...this.students];
+    if (this.editStudentForm.valid && this.selectedStudentId) {
+      const formValue = this.editStudentForm.value;
+      
+      const updateData: UpdateStudentDto = {
+        name: formValue.name.trim(),
+        email: formValue.email.trim(),
+        student: {
+          lastname: formValue.lastname.trim(),
+          birthdate: this.formatDate(formValue.birthdate)
         }
-        this.editStudentForm.reset();
-        this.mostrarFormularioEdicion = false;
-        alert('Estudiante actualizado exitosamente');
-      },
-      error: (err) => {
-        console.error('Error al actualizar estudiante:', err);
-        alert('Error al actualizar el estudiante: ' + err.error.message);
-      }
-    });
+      };
+
+      this.studentService.updateStudent(this.selectedStudentId, updateData).subscribe({
+        next: (result) => {
+          const index = this.students.findIndex(s => s.id === this.selectedStudentId);
+          if (index !== -1) {
+            this.students[index] = result;
+            this.filteredStudents = [...this.students];
+          }
+          this.mostrarFormularioEdicion = false;
+          this.selectedStudentId = '';
+          window.alert('Estudiante actualizado exitosamente');
+        },
+        error: (err) => this.handleError(err)
+      });
+    } else {
+      window.alert('Por favor, complete todos los campos requeridos correctamente.');
+    }
   }
 
   eliminarEstudiante(id: string) {
-    if (confirm('¿Está seguro que desea eliminar este estudiante?')) {
-      this.studentservice.deleteStudent(id).subscribe({
+    if (confirm('¿Está seguro de que desea eliminar este estudiante?')) {
+      this.studentService.deleteStudent(id).subscribe({
         next: () => {
           this.students = this.students.filter(s => s.id !== id);
-          this.filteredestudiante = [...this.students];
-          alert('Estudiante eliminado exitosamente');
+          this.filteredStudents = this.students;
+          window.alert('Estudiante eliminado exitosamente');
         },
-        error: (err) => {
-          console.error('Error al eliminar estudiante:', err);
-          alert('Error al eliminar el estudiante: ' + err.error.message);
-        }
+        error: (err) => this.handleError(err)
       });
     }
   }
 
   buscarEstudiante(): void {
-    if (!this.estudianteABuscar.id) {
-      this.filteredestudiante = [...this.students];
+    const searchTerm = this.estudianteABuscar.searchTerm?.toLowerCase().trim() || '';
+    
+    if (!searchTerm) {
+      this.filteredStudents = [...this.students];
       return;
     }
 
-    this.filteredestudiante = this.students.filter(student => 
-      student.id.toLowerCase().includes(this.estudianteABuscar.id!.toLowerCase()) ||
-      student.name.toLowerCase().includes(this.estudianteABuscar.id!.toLowerCase()) ||
-      student.lastname.toLowerCase().includes(this.estudianteABuscar.id!.toLowerCase())
+    this.filteredStudents = this.students.filter(student => 
+      student.id.toLowerCase().includes(searchTerm) ||
+      student.name.toLowerCase().includes(searchTerm) ||
+      student.email.toLowerCase().includes(searchTerm) ||
+      student.student?.lastname.toLowerCase().includes(searchTerm)
     );
   }
 }

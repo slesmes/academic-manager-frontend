@@ -6,8 +6,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ProfessorsService } from '../../core/services/professors.service';
 import { DepartmentsService } from '../../core/services/departments.service';
-import { ActivatedRoute } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -34,10 +34,23 @@ export class ProfessorsComponent implements OnInit {
     private professorService: ProfessorsService,
     private departmentService: DepartmentsService,
     private route: ActivatedRoute,
+    private router: Router,
     private fb: FormBuilder
   ) {
     this.professorForm = this.initializeProfessorForm();
     this.editProfessorForm = this.initializeEditProfessorForm();
+  }
+
+  private handleError(error: HttpErrorResponse): void {
+    console.error('Error:', error);
+    if (error.status === 401) {
+      console.log('Redirigiendo al login por error de autorización');
+      localStorage.removeItem('access_token');
+      this.router.navigate(['/login']);
+    } else {
+      console.error('Error en la operación:', error);
+      window.alert(error.error?.message || 'Error desconocido');
+    }
   }
 
   private initializeProfessorForm(): FormGroup {
@@ -79,10 +92,7 @@ export class ProfessorsComponent implements OnInit {
           }
         });
       },
-      error: (err) => {
-        console.error('Error al cargar datos:', err);
-        alert('Error al cargar los datos necesarios');
-      }
+      error: (err) => this.handleError(err)
     });
   }
 
@@ -111,16 +121,12 @@ export class ProfessorsComponent implements OnInit {
           this.filteredProfessors = [...this.professors];
           this.professorForm.reset();
           this.mostrarFormulario = false;
-          alert('Profesor creado exitosamente');
+          window.alert('Profesor creado exitosamente');
         },
-        error: (err) => {
-          console.error('Error al crear profesor:', err);
-          const errorMessage = err.error?.message || 'Error desconocido';
-          alert('Error al crear el profesor: ' + errorMessage);
-        }
+        error: (err) => this.handleError(err)
       });
     } else {
-      alert('Por favor, complete todos los campos requeridos correctamente.');
+      window.alert('Por favor, complete todos los campos requeridos correctamente.');
     }
   }
 
@@ -136,20 +142,23 @@ export class ProfessorsComponent implements OnInit {
       });
       this.mostrarFormularioEdicion = true;
     } else {
-      alert('No se encontró la información completa del profesor');
+      window.alert('No se encontró la información completa del profesor');
     }
   }
 
   actualizarProfesor() {
     if (this.editProfessorForm.valid && this.selectedProfessorId) {
       const formValue = this.editProfessorForm.value;
+      const professor = this.professors.find(p => p.id === this.selectedProfessorId);
+      const oldDepartmentId = professor?.professor?.department?.id;
+      const newDepartmentId = Number(formValue.departmentId);
       
       const updateData: UpdateProfessorDto = {
-        name: formValue.name,
-        email: formValue.email,
+        name: formValue.name.trim(),
+        email: formValue.email.trim(),
         professor: {
-          hireDate: formValue.hireDate,
-          departmentId: parseInt(formValue.departmentId)
+          hireDate: new Date(formValue.hireDate).toISOString(),
+          departmentId: newDepartmentId
         }
       };
 
@@ -157,18 +166,48 @@ export class ProfessorsComponent implements OnInit {
         next: (result) => {
           const index = this.professors.findIndex(p => p.id === this.selectedProfessorId);
           if (index !== -1) {
+            // Actualizar el conteo de profesores en los departamentos
+            if (oldDepartmentId !== newDepartmentId) {
+              // Decrementar el contador del departamento anterior
+              const oldDeptIndex = this.departments.findIndex(d => d.id === oldDepartmentId);
+              if (oldDeptIndex !== -1) {
+                const oldDept = this.departments[oldDeptIndex];
+                this.departments[oldDeptIndex] = {
+                  ...oldDept,
+                  professorCount: (oldDept.professorCount ?? 0) - 1
+                };
+              }
+
+              // Incrementar el contador del nuevo departamento
+              const newDeptIndex = this.departments.findIndex(d => d.id === newDepartmentId);
+              if (newDeptIndex !== -1) {
+                const newDept = this.departments[newDeptIndex];
+                this.departments[newDeptIndex] = {
+                  ...newDept,
+                  professorCount: (newDept.professorCount ?? 0) + 1
+                };
+              }
+            }
+
+            const department = this.departments.find(d => d.id === newDepartmentId);
+            if (department && result.professor) {
+              result.professor.department = department;
+            }
             this.professors[index] = result;
             this.filteredProfessors = [...this.professors];
           }
           this.mostrarFormularioEdicion = false;
           this.selectedProfessorId = '';
-          alert('Profesor actualizado exitosamente');
+          window.alert('Profesor actualizado exitosamente');
         },
         error: (err) => {
-          console.error('Error al actualizar profesor:', err);
-          alert('Error al actualizar el profesor');
+          this.handleError(err);
+          // Recargar los datos en caso de error
+          this.ngOnInit();
         }
       });
+    } else {
+      window.alert('Por favor, complete todos los campos requeridos correctamente.');
     }
   }
 
@@ -178,12 +217,9 @@ export class ProfessorsComponent implements OnInit {
         next: () => {
           this.professors = this.professors.filter(p => p.id !== id);
           this.filteredProfessors = this.professors.filter(p => p.id !== id);
-          alert('Profesor eliminado exitosamente');
+          window.alert('Profesor eliminado exitosamente');
         },
-        error: (err) => {
-          console.error('Error al eliminar profesor:', err);
-          alert('Error al eliminar el profesor');
-        }
+        error: (err) => this.handleError(err)
       });
     }
   }
