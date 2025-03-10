@@ -10,17 +10,23 @@
     <thead>
         <tr>
             <th>ID</th>
+            <th>Código</th>
             <th>Nombre</th>
             <th>Descripción</th>
+            <th>Créditos</th>
             <th>Profesor</th>
+            <th>Departamento</th>
         </tr>
     </thead>
     <tbody>
         <tr *ngFor="let cou of cursos" (click)="abrirModal(cou)">
             <td>{{ cou.id }}</td>
+            <td>{{ cou.code }}</td>
             <td>{{ cou.name }}</td>
             <td>{{ cou.description }}</td>
+            <td>{{ cou.credits }}</td>
             <td>{{ cou.professor?.name }}</td>
+            <td>{{ cou.professor?.professor?.department?.name }}</td>
         </tr>
     </tbody>
 </table>
@@ -60,10 +66,16 @@
             <input type="text" id="nombre" [(ngModel)]="nuevoCurso.name" name="nombre" required>
 
             <label for="descripcion">Descripción:</label>
-            <input type="text" id="descripcion" [(ngModel)]="nuevoCurso.description" name="descripcion">
+            <input type="text" id="descripcion" [(ngModel)]="nuevoCurso.description" name="descripcion" required>
+
+            <label for="credits">Créditos:</label>
+            <input type="number" id="credits" [(ngModel)]="nuevoCurso.credits" name="credits" required>
+
+            <label for="code">Código:</label>
+            <input type="text" id="code" [(ngModel)]="nuevoCurso.code" name="code" required>
 
             <label for="profesor">Cédula profesor:</label>
-            <input type="number" id="profesor" [(ngModel)]="nuevoCurso.professorId" name="profesor" required>
+            <input type="text" id="profesor" [(ngModel)]="nuevoCurso.professorId" name="profesor">
 
             <div class="modal-buttons">
                 <button type="submit">Guardar</button>

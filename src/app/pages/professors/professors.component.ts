@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Professor } from '../../core/interfaces/professors';
+import { Professor, CreateProfessorDto, UpdateProfessorDto } from '../../core/interfaces/professors';
 import { Department } from '../../core/interfaces/departments';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { ProfessorsService } from '../../core/services/professors.service';
 import { DepartmentsService } from '../../core/services/departments.service';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-professors',
@@ -23,13 +24,11 @@ export class ProfessorsComponent implements OnInit {
   
   mostrarFormulario: boolean = false;
   mostrarFormularioEdicion: boolean = false;
-  nuevoProfesor: Professor = { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } };
-  profesorAEditar: Professor = { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } };
-  profesorABuscar: Partial<Professor> = { id: '', name: '' };
-  profesorAEliminar: Professor = { id: '', name: '', hireDate: new Date(), department: { id: 0, name: '', description: '', creationDate: new Date() } };
+  profesorABuscar: { searchTerm: string } = { searchTerm: '' };
 
   professorForm: FormGroup;
   editProfessorForm: FormGroup;
+  private selectedProfessorId: string = '';
 
   constructor(
     private professorService: ProfessorsService,
@@ -37,29 +36,42 @@ export class ProfessorsComponent implements OnInit {
     private route: ActivatedRoute,
     private fb: FormBuilder
   ) {
-    this.professorForm = this.fb.group({
+    this.professorForm = this.initializeProfessorForm();
+    this.editProfessorForm = this.initializeEditProfessorForm();
+  }
+
+  private initializeProfessorForm(): FormGroup {
+    return this.fb.group({
       id: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
       name: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
       hireDate: ['', Validators.required],
       departmentId: ['', Validators.required]
     });
+  }
 
-    this.editProfessorForm = this.fb.group({
-      id: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
+  private initializeEditProfessorForm(): FormGroup {
+    return this.fb.group({
       name: ['', [Validators.required, Validators.pattern('^[a-zA-Z ]+$')]],
+      email: ['', [Validators.required, Validators.email]],
       hireDate: ['', Validators.required],
       departmentId: ['', Validators.required]
     });
   }
 
   ngOnInit(): void {
-    // Primero cargamos los profesores
-    this.professorService.getProfessors().subscribe({
+    // Cargar departamentos y profesores en paralelo
+    forkJoin({
+      departments: this.departmentService.getDepartments(),
+      professors: this.professorService.getProfessors()
+    }).subscribe({
       next: (result) => {
-        this.professors = result;
-        this.filteredProfessors = result;
-        
-        // Una vez que tenemos los profesores, nos suscribimos a los cambios de URL
+        this.departments = result.departments;
+        this.professors = result.professors;
+        this.filteredProfessors = result.professors;
+
+        // Suscribirse a los cambios de URL después de cargar los datos
         this.route.queryParams.subscribe(params => {
           const departmentId = params['departmentId'];
           if (departmentId) {
@@ -68,136 +80,118 @@ export class ProfessorsComponent implements OnInit {
         });
       },
       error: (err) => {
-        console.error('Error al obtener profesores:', err);
-        alert('Error al obtener los profesores');
-      }
-    });
-
-    this.loadDepartments();
-  }
-
-  loadDepartments() {
-    this.departmentService.getDepartments().subscribe({
-      next: (result) => {
-        this.departments = result;
-      },
-      error: (err) => {
-        console.error('Error al obtener departamentos:', err);
-        alert('Error al obtener los departamentos');
+        console.error('Error al cargar datos:', err);
+        alert('Error al cargar los datos necesarios');
       }
     });
   }
 
   crearProfesor() {
-    if (this.professorForm.invalid) {
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
-      this.professorForm.markAllAsTouched();
-      return;
+    if (this.professorForm.valid) {
+      const formValue = this.professorForm.value;
+      const newProfessor: CreateProfessorDto = {
+        id: formValue.id,
+        name: formValue.name.trim(),
+        email: formValue.email.trim(),
+        password: formValue.password,
+        role: 'professor',
+        professor: {
+          hireDate: formValue.hireDate,
+          departmentId: Number(formValue.departmentId)
+        }
+      };
+
+      this.professorService.createProfessor(newProfessor).subscribe({
+        next: (result) => {
+          const department = this.departments.find(d => d.id === Number(formValue.departmentId));
+          if (department && result.professor) {
+            result.professor.department = department;
+          }
+          this.professors.push(result);
+          this.filteredProfessors = [...this.professors];
+          this.professorForm.reset();
+          this.mostrarFormulario = false;
+          alert('Profesor creado exitosamente');
+        },
+        error: (err) => {
+          console.error('Error al crear profesor:', err);
+          const errorMessage = err.error?.message || 'Error desconocido';
+          alert('Error al crear el profesor: ' + errorMessage);
+        }
+      });
+    } else {
+      alert('Por favor, complete todos los campos requeridos correctamente.');
     }
-
-    const formValue = this.professorForm.value;
-    const department = this.departments.find(d => d.id === Number(formValue.departmentId));
-
-    if (!department) {
-      alert('Por favor, seleccione un departamento válido');
-      return;
-    }
-
-    const payload = {
-      id: formValue.id,
-      name: formValue.name,
-      hireDate: new Date(formValue.hireDate),
-      department: department
-    };
-
-    this.professorService.createProfessor(payload).subscribe({
-      next: (result) => {
-        this.professors.push(result);
-        this.filteredProfessors = [...this.professors];
-        this.professorForm.reset();
-        this.mostrarFormulario = false;
-        alert('Profesor creado exitosamente');
-      },
-      error: (err) => {
-        console.error('Error al crear profesor:', err);
-        alert('Error al crear el profesor');
-      }
-    });
   }
 
   editarProfesor(id: string) {
+    this.selectedProfessorId = id;
     const professor = this.professors.find(p => p.id === id);
-    if (professor) {
+    if (professor && professor.professor) {
       this.editProfessorForm.patchValue({
-        id: professor.id,
         name: professor.name,
-        hireDate: new Date(professor.hireDate).toISOString().split('T')[0],
-        departmentId: professor.department.id
+        email: professor.email,
+        hireDate: professor.professor.hireDate.split('T')[0],
+        departmentId: professor.professor.department.id
       });
+      this.mostrarFormularioEdicion = true;
+    } else {
+      alert('No se encontró la información completa del profesor');
     }
   }
 
   actualizarProfesor() {
-    if (this.editProfessorForm.invalid) {
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
-      this.editProfessorForm.markAllAsTouched();
-      return;
-    }
-
-    const formValue = this.editProfessorForm.value;
-    const department = this.departments.find(d => d.id === Number(formValue.departmentId));
-
-    if (!department) {
-      alert('Por favor, seleccione un departamento válido');
-      return;
-    }
-
-    const payload = {
-      id: formValue.id,
-      name: formValue.name,
-      hireDate: new Date(formValue.hireDate),
-      department: department
-    };
-
-    this.professorService.updateProfessor(payload).subscribe({
-      next: (result) => {
-        const index = this.professors.findIndex(p => p.id === result.id);
-        if (index !== -1) {
-          this.professors[index] = result;
-          this.filteredProfessors = [...this.professors];
+    if (this.editProfessorForm.valid && this.selectedProfessorId) {
+      const formValue = this.editProfessorForm.value;
+      
+      const updateData: UpdateProfessorDto = {
+        name: formValue.name,
+        email: formValue.email,
+        professor: {
+          hireDate: formValue.hireDate,
+          departmentId: parseInt(formValue.departmentId)
         }
-        this.editProfessorForm.reset();
-        this.mostrarFormularioEdicion = false;
-        alert('Profesor actualizado exitosamente');
-      },
-      error: (err) => {
-        console.error('Error al actualizar profesor:', err);
-        alert('Error al actualizar el profesor: ' + err.error.message);
-      }
-    });
-  }
+      };
 
-  eliminarProfesor(id: string) {
-    if (confirm('¿Está seguro que desea eliminar este profesor?')) {
-      this.professorService.deleteProfessor(id).subscribe({
-        next: () => {
-          this.professors = this.professors.filter(p => p.id !== id);
-          this.filteredProfessors = [...this.professors];
-          alert('Profesor eliminado exitosamente');
+      this.professorService.updateProfessor(this.selectedProfessorId, updateData).subscribe({
+        next: (result) => {
+          const index = this.professors.findIndex(p => p.id === this.selectedProfessorId);
+          if (index !== -1) {
+            this.professors[index] = result;
+            this.filteredProfessors = [...this.professors];
+          }
+          this.mostrarFormularioEdicion = false;
+          this.selectedProfessorId = '';
+          alert('Profesor actualizado exitosamente');
         },
         error: (err) => {
-          console.error('Error al eliminar profesor:', err);
-          alert('Error al eliminar el profesor: ' + err.error.message);
+          console.error('Error al actualizar profesor:', err);
+          alert('Error al actualizar el profesor');
         }
       });
     }
   }
 
-  buscarProfesor(): void {
-    const searchTerm = this.profesorABuscar.id?.toLowerCase() || '';
-    const searchName = this.profesorABuscar.name?.toLowerCase() || '';
+  eliminarProfesor(id: string) {
+    if (confirm('¿Está seguro de que desea eliminar este profesor?')) {
+      this.professorService.deleteProfessor(id).subscribe({
+        next: () => {
+          this.professors = this.professors.filter(p => p.id !== id);
+          this.filteredProfessors = this.professors.filter(p => p.id !== id);
+          alert('Profesor eliminado exitosamente');
+        },
+        error: (err) => {
+          console.error('Error al eliminar profesor:', err);
+          alert('Error al eliminar el profesor');
+        }
+      });
+    }
+  }
 
-    if (!searchTerm && !searchName) {
+  buscarProfesor() {
+    const searchTerm = this.profesorABuscar.searchTerm.toLowerCase().trim();
+    
+    if (!searchTerm) {
       this.filteredProfessors = [...this.professors];
       return;
     }
@@ -205,13 +199,19 @@ export class ProfessorsComponent implements OnInit {
     this.filteredProfessors = this.professors.filter(prof => 
       prof.id.toLowerCase().includes(searchTerm) ||
       prof.name.toLowerCase().includes(searchTerm) ||
-      prof.department.name.toLowerCase().includes(searchTerm)
+      prof.email.toLowerCase().includes(searchTerm) ||
+      prof.professor?.department?.name.toLowerCase().includes(searchTerm)
     );
   }
 
   filterByDepartment(departmentId: number) {
-    this.filteredProfessors = this.professors.filter(prof => 
-      prof.department.id === departmentId
+    if (!departmentId) {
+      this.filteredProfessors = [...this.professors];
+      return;
+    }
+
+    this.filteredProfessors = this.professors.filter(
+      p => p.professor?.department?.id === departmentId
     );
   }
 }

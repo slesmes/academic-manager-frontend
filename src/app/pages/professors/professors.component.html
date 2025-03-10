@@ -8,7 +8,7 @@
   <input 
     type="text" 
     placeholder="Buscar por ID, Nombre o Departamento" 
-    [(ngModel)]="profesorABuscar.id" 
+    [(ngModel)]="profesorABuscar.searchTerm" 
     (input)="buscarProfesor()"
   >
 </div>
@@ -30,6 +30,19 @@
       <div *ngIf="professorForm.get('name')?.invalid && professorForm.get('name')?.touched">
         <small class="form-error" *ngIf="professorForm.get('name')?.errors?.['required']">El nombre es requerido.</small>
         <small class="form-error" *ngIf="professorForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+      </div>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" formControlName="email" required>
+      <div *ngIf="professorForm.get('email')?.invalid && professorForm.get('email')?.touched">
+        <small class="form-error" *ngIf="professorForm.get('email')?.errors?.['required']">El email es requerido.</small>
+        <small class="form-error" *ngIf="professorForm.get('email')?.errors?.['email']">El email no es válido.</small>
+      </div>
+
+      <label for="password">Contraseña:</label>
+      <input type="password" id="password" formControlName="password" required>
+      <div *ngIf="professorForm.get('password')?.invalid && professorForm.get('password')?.touched">
+        <small class="form-error" *ngIf="professorForm.get('password')?.errors?.['required']">La contraseña es requerida.</small>
       </div>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
@@ -62,18 +75,18 @@
     <span class="close" (click)="mostrarFormularioEdicion = false">&times;</span>
     <h3>Editar Profesor</h3>
     <form [formGroup]="editProfessorForm" (ngSubmit)="actualizarProfesor()">
-      <label for="id">Cédula:</label>
-      <input type="text" id="id" formControlName="id" required maxlength="10" readonly>
-      <div *ngIf="editProfessorForm.get('id')?.invalid && editProfessorForm.get('id')?.touched">
-        <small class="form-error" *ngIf="editProfessorForm.get('id')?.errors?.['required']">La cédula es requerida.</small>
-        <small class="form-error" *ngIf="editProfessorForm.get('id')?.errors?.['pattern']">La cédula debe contener solo números.</small>
-      </div>
-
       <label for="nombre">Nombre:</label>
       <input type="text" id="nombre" formControlName="name" required maxlength="100">
       <div *ngIf="editProfessorForm.get('name')?.invalid && editProfessorForm.get('name')?.touched">
         <small class="form-error" *ngIf="editProfessorForm.get('name')?.errors?.['required']">El nombre es requerido.</small>
         <small class="form-error" *ngIf="editProfessorForm.get('name')?.errors?.['pattern']">El nombre no puede contener números o caracteres especiales.</small>
+      </div>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" formControlName="email" required>
+      <div *ngIf="editProfessorForm.get('email')?.invalid && editProfessorForm.get('email')?.touched">
+        <small class="form-error" *ngIf="editProfessorForm.get('email')?.errors?.['required']">El email es requerido.</small>
+        <small class="form-error" *ngIf="editProfessorForm.get('email')?.errors?.['email']">El email no es válido.</small>
       </div>
 
       <label for="fechaContratacion">Fecha de Contratación:</label>
@@ -106,6 +119,7 @@
     <tr>
       <th>Cédula</th>
       <th>Nombre</th>
+      <th>Email</th>
       <th>Fecha de Contratación</th>
       <th>Departamento</th>
       <th>Acciones</th>
@@ -115,8 +129,9 @@
     <tr *ngFor="let prof of filteredProfessors">
       <td>{{ prof.id }}</td>
       <td>{{ prof.name }}</td>
-      <td>{{ prof.hireDate | date }}</td>
-      <td>{{ prof.department.name }}</td>
+      <td>{{ prof.email }}</td>
+      <td>{{ prof.professor?.hireDate | date:'shortDate' }}</td>
+      <td>{{ prof.professor?.department?.name || 'Sin departamento' }}</td>
       <td class="actions-cell">
         <button class="edit-button" (click)="editarProfesor(prof.id); mostrarFormularioEdicion = true">Editar</button>
         <button class="delete-button" (click)="eliminarProfesor(prof.id)">Eliminar</button>

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { tap, catchError, map } from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root',
@@ -14,12 +14,43 @@ export class AuthService {
     constructor(private http: HttpClient, private router: Router) { }
 
     login(email: string, password: string): Observable<{ access_token: string }> {
+        const headers = new HttpHeaders()
+            .set('Content-Type', 'application/json')
+            .set('Accept', 'application/json');
+        
+        const body = {
+            email: email,
+            password: password
+        };
+
+        console.log('URL:', `${this.API_URL}/login`);
+        console.log('Body:', body);
+        console.log('Headers:', headers);
+        
         return this.http
-            .post<{ access_token: string }>(`${this.API_URL}/login`, { email, password })
+            .post<{ access_token: string }>(
+                `${this.API_URL}/login`,
+                body,
+                { 
+                    headers,
+                    observe: 'response'
+                }
+            )
             .pipe(
-                tap((response) => {
-                    localStorage.setItem('access_token', response.access_token);
-                    this.currentUserSubject.next(true);
+                map(response => {
+                    console.log('Respuesta completa del servidor:', response);
+                    if (response.body && response.body.access_token) {
+                        localStorage.setItem('access_token', response.body.access_token);
+                        this.currentUserSubject.next(true);
+                        return response.body;
+                    }
+                    throw new Error('No se recibió el token de acceso');
+                }),
+                catchError(error => {
+                    console.error('Error completo:', error);
+                    console.error('Estado:', error.status);
+                    console.error('Mensaje:', error.error);
+                    return throwError(() => error);
                 })
             );
     }

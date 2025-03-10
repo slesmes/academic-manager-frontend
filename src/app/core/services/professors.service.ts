@@ -1,35 +1,34 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Professor } from "../interfaces/professors";
+import { Professor, CreateProfessorDto, UpdateProfessorDto } from "../interfaces/professors";
 import { Observable } from "rxjs";
 
 @Injectable({
   providedIn: 'root'})
 
 export class ProfessorsService {
-    apiUrl = 'http://localhost:3000/professors';
+    private apiUrl = 'http://localhost:3000/professors';
+    private authUrl = 'http://localhost:3000/auth';
+    
     constructor(private httpClient: HttpClient) { }
 
     getProfessors(): Observable<Professor[]> {
         return this.httpClient.get<Professor[]>(this.apiUrl);
-      }
+    }
     
-      getProfessorById(id: string): Observable<Professor> {
+    getProfessorById(id: string): Observable<Professor> {
         return this.httpClient.get<Professor>(`${this.apiUrl}/${id}`);
-      }
-      createProfessor(Professor: Professor): Observable<Professor> {
-        return this.httpClient.post<Professor>(this.apiUrl, Professor);
-      }
+    }
+
+    createProfessor(professor: CreateProfessorDto): Observable<Professor> {
+        return this.httpClient.post<Professor>(`${this.authUrl}/register`, professor);
+    }
     
-      updateProfessor(Professor: Professor): Observable<Professor> {
-        return this.httpClient.put<Professor>(`${this.apiUrl}/${Professor.id}`, Professor);
-      }
+    updateProfessor(id: string, professor: UpdateProfessorDto): Observable<Professor> {
+        return this.httpClient.put<Professor>(`${this.apiUrl}/${id}`, professor);
+    }
     
-      deleteProfessor(id: string): Observable<any> {
-        return this.httpClient.delete(`${this.apiUrl}/${id}`);
-      }
-    
-      searchProfessor(id: string): Observable<Professor> {
-        return this.httpClient.get<Professor>(`${this.apiUrl}/${id}`);
-      }
+    deleteProfessor(id: string): Observable<void> {
+        return this.httpClient.delete<void>(`${this.apiUrl}/${id}`);
+    }
 }
