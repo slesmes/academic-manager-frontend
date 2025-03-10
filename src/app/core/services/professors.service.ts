@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Professor, CreateProfessorDto, UpdateProfessorDto } from "../interfaces/professors";
 import { Observable } from "rxjs";
@@ -12,12 +12,17 @@ export class ProfessorsService {
     
     constructor(private httpClient: HttpClient) { }
 
+    private getHeaders(): HttpHeaders {
+      const token = localStorage.getItem('access_token');
+      return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    }
+
     getProfessors(): Observable<Professor[]> {
-        return this.httpClient.get<Professor[]>(this.apiUrl);
+        return this.httpClient.get<Professor[]>(this.apiUrl, { headers: this.getHeaders() });
     }
     
     getProfessorById(id: string): Observable<Professor> {
-        return this.httpClient.get<Professor>(`${this.apiUrl}/${id}`);
+        return this.httpClient.get<Professor>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
     }
 
     createProfessor(professor: CreateProfessorDto): Observable<Professor> {
@@ -25,10 +30,10 @@ export class ProfessorsService {
     }
     
     updateProfessor(id: string, professor: UpdateProfessorDto): Observable<Professor> {
-        return this.httpClient.put<Professor>(`${this.apiUrl}/${id}`, professor);
+        return this.httpClient.put<Professor>(`${this.apiUrl}/${id}`, professor, { headers: this.getHeaders() });
     }
     
     deleteProfessor(id: string): Observable<void> {
-        return this.httpClient.delete<void>(`${this.apiUrl}/${id}`);
+        return this.httpClient.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
     }
 }

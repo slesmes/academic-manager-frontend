@@ -7,8 +7,8 @@
 <div class="searchbar">
   <input 
     type="text" 
-    placeholder="Buscar por ID, Nombre o Apellido" 
-    [(ngModel)]="estudianteABuscar.id" 
+    placeholder="Buscar por ID, Nombre, Email o Apellido" 
+    [(ngModel)]="estudianteABuscar.searchTerm" 
     (input)="buscarEstudiante()"
   >
 </div>
@@ -18,7 +18,7 @@
     <span class="close" (click)="mostrarFormulario = false">&times;</span>
     <h3>Nuevo Estudiante</h3>
     <form [formGroup]="studentForm" (ngSubmit)="crearEstudiante()">
-      <label for="id">Identificacion:</label>
+      <label for="id">Identificación:</label>
       <input type="text" id="id" formControlName="id" required maxlength="30">
       <div *ngIf="studentForm.get('id')?.invalid && studentForm.get('id')?.touched">
         <small *ngIf="studentForm.get('id')?.errors?.['required']">ID es requerido.</small>
@@ -30,6 +30,19 @@
       <div *ngIf="studentForm.get('name')?.invalid && studentForm.get('name')?.touched">
         <small *ngIf="studentForm.get('name')?.errors?.['required']">Nombre es requerido.</small>
         <small *ngIf="studentForm.get('name')?.errors?.['pattern']">Nombre no puede tener caracteres especiales o números.</small>
+      </div>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" formControlName="email" required>
+      <div *ngIf="studentForm.get('email')?.invalid && studentForm.get('email')?.touched">
+        <small *ngIf="studentForm.get('email')?.errors?.['required']">Email es requerido.</small>
+        <small *ngIf="studentForm.get('email')?.errors?.['email']">Email no es válido.</small>
+      </div>
+
+      <label for="password">Contraseña:</label>
+      <input type="password" id="password" formControlName="password" required>
+      <div *ngIf="studentForm.get('password')?.invalid && studentForm.get('password')?.touched">
+        <small *ngIf="studentForm.get('password')?.errors?.['required']">Contraseña es requerida.</small>
       </div>
 
       <label for="apellido">Apellido:</label>
@@ -58,18 +71,18 @@
     <span class="close" (click)="mostrarFormularioEdicion = false">&times;</span>
     <h3>Editar Estudiante</h3>
     <form [formGroup]="editStudentForm" (ngSubmit)="actualizarEstudiante()">
-      <label for="id">ID:</label>
-      <input type="text" id="id" formControlName="id" required maxlength="30">
-      <div *ngIf="editStudentForm.get('id')?.invalid && editStudentForm.get('id')?.touched">
-        <small *ngIf="editStudentForm.get('id')?.errors?.['required']">ID es requerido.</small>
-        <small *ngIf="editStudentForm.get('id')?.errors?.['pattern']">ID debe ser solo números.</small>
-      </div>
-
       <label for="nombre">Nombre:</label>
       <input type="text" id="nombre" formControlName="name" required maxlength="30">
       <div *ngIf="editStudentForm.get('name')?.invalid && editStudentForm.get('name')?.touched">
         <small *ngIf="editStudentForm.get('name')?.errors?.['required']">Nombre es requerido.</small>
         <small *ngIf="editStudentForm.get('name')?.errors?.['pattern']">Nombre no puede tener caracteres especiales o números.</small>
+      </div>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" formControlName="email" required>
+      <div *ngIf="editStudentForm.get('email')?.invalid && editStudentForm.get('email')?.touched">
+        <small *ngIf="editStudentForm.get('email')?.errors?.['required']">Email es requerido.</small>
+        <small *ngIf="editStudentForm.get('email')?.errors?.['email']">Email no es válido.</small>
       </div>
 
       <label for="apellido">Apellido:</label>
@@ -93,27 +106,29 @@
   </div>
 </div>
 
-<table *ngIf="filteredestudiante.length > 0">
+<table *ngIf="filteredStudents.length > 0">
   <thead>
     <tr>
       <th>ID</th>
       <th>Nombre</th>
+      <th>Email</th>
       <th>Apellido</th>
       <th>Fecha de Nacimiento</th>
       <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let student of filteredestudiante">
+    <tr *ngFor="let student of filteredStudents">
       <td>{{ student.id }}</td>
       <td>{{ student.name }}</td>
-      <td>{{ student.lastname }}</td>
-      <td>{{ student.birthdate | date }}</td>
-      <td>
+      <td>{{ student.email }}</td>
+      <td>{{ student.student?.lastname }}</td>
+      <td>{{ student.student?.birthdate | date }}</td>
+      <td class="actions-cell">
         <button class="edit-button" (click)="editarEstudiante(student.id); mostrarFormularioEdicion = true">Editar</button>
         <button class="delete-button" (click)="eliminarEstudiante(student.id)">Eliminar</button>
       </td>
     </tr>
   </tbody>
 </table>
-<p *ngIf="filteredestudiante.length === 0">No hay estudiantes disponibles.</p>
+<p *ngIf="filteredStudents.length === 0">No hay estudiantes disponibles.</p>

@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
 import { Department, DepartmentDto } from '../../core/interfaces/departments';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DepartmentsService } from '../../core/services/departments.service';
 import { ProfessorsService } from '../../core/services/professors.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-departments',
@@ -14,6 +15,7 @@ import { ProfessorsService } from '../../core/services/professors.service';
   imports: [CommonModule, FormsModule, ReactiveFormsModule]
 })
 export class DepartmentsComponent implements OnInit {
+  private platformId = inject(PLATFORM_ID);
 
   departments: (Department & { professorCount: number })[] = [];
   filteredDepartments: (Department & { professorCount: number })[] = [];
@@ -49,8 +51,22 @@ export class DepartmentsComponent implements OnInit {
     });
   }
 
+  private handleError(error: HttpErrorResponse): void {
+    console.error('Error:', error);
+    if (error.status === 401) {
+      console.log('Redirigiendo al login por error de autorización');
+      localStorage.removeItem('access_token');
+      this.router.navigate(['/login']);
+    } else {
+      console.error('Error en la operación:', error);
+      window.alert(error.error?.message || 'Error desconocido');
+    }
+  }
+
   ngOnInit(): void {
-    this.loadDepartmentsWithProfessors();
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadDepartmentsWithProfessors();
+    }
   }
 
   loadDepartmentsWithProfessors() {
@@ -66,22 +82,16 @@ export class DepartmentsComponent implements OnInit {
             }));
             this.filteredDepartments = [...this.departments];
           },
-          error: (err) => {
-            console.error('Error al obtener profesores:', err);
-            alert('Error al obtener los profesores');
-          }
+          error: (err) => this.handleError(err)
         });
       },
-      error: (err) => {
-        console.error('Error al obtener departamentos:', err);
-        alert('Error al obtener los departamentos');
-      }
+      error: (err) => this.handleError(err)
     });
   }
 
   crearDepartamento() {
     if (this.departamentoForm.invalid) {
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
+      window.alert('Por favor, complete todos los campos obligatorios correctamente.');
       this.departamentoForm.markAllAsTouched();
       return;
     }
@@ -99,15 +109,9 @@ export class DepartmentsComponent implements OnInit {
         this.filteredDepartments = [...this.departments];
         this.departamentoForm.reset();
         this.mostrarFormulario = false;
-        alert('Departamento creado exitosamente');
+        window.alert('Departamento creado exitosamente');
       },
-      error: (err) => {
-        console.error('Error al crear departamento:', err);
-        const errorMessage = Array.isArray(err.error.message) 
-          ? err.error.message.join(', ') 
-          : err.error.message || 'Error desconocido';
-        alert('Error al crear el departamento: ' + errorMessage);
-      }
+      error: (err) => this.handleError(err)
     });
   }
 
@@ -125,7 +129,7 @@ export class DepartmentsComponent implements OnInit {
 
   actualizarDepartamento() {
     if (this.editarDepartamentoForm.invalid) {
-      alert('Por favor, complete todos los campos obligatorios correctamente.');
+      window.alert('Por favor, complete todos los campos obligatorios correctamente.');
       this.editarDepartamentoForm.markAllAsTouched();
       return;
     }
@@ -144,12 +148,9 @@ export class DepartmentsComponent implements OnInit {
         }
         this.editarDepartamentoForm.reset();
         this.mostrarFormularioEdicion = false;
-        alert('Departamento actualizado exitosamente');
+        window.alert('Departamento actualizado exitosamente');
       },
-      error: (err) => {
-        console.error('Error al actualizar departamento:', err);
-        alert('Error al actualizar el departamento: ' + err.error.message);
-      }
+      error: (err) => this.handleError(err)
     });
   }
 
@@ -159,12 +160,9 @@ export class DepartmentsComponent implements OnInit {
         next: () => {
           this.departments = this.departments.filter(dep => dep.id !== Number(id));
           this.filteredDepartments = [...this.departments];
-          alert('Departamento eliminado exitosamente');
+          window.alert('Departamento eliminado exitosamente');
         },
-        error: (err) => {
-          console.error('Error al eliminar departamento:', err);
-          alert('Error al eliminar el departamento: ' + err.error.message);
-        }
+        error: (err) => this.handleError(err)
       });
     }
   }
