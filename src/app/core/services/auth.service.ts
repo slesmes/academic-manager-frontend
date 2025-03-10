@@ -1,8 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
+import { isPlatformBrowser } from '@angular/common';
+
+interface DecodedToken {
+  sub: string;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
 
 @Injectable({
     providedIn: 'root',
@@ -10,6 +19,7 @@ import { tap, catchError, map } from 'rxjs/operators';
 export class AuthService {
     private API_URL = 'http://localhost:3000/auth';
     private currentUserSubject: BehaviorSubject<any> = new BehaviorSubject(false);
+    private platformId = inject(PLATFORM_ID);
 
     constructor(private http: HttpClient, private router: Router) { }
 
@@ -22,10 +32,6 @@ export class AuthService {
             email: email,
             password: password
         };
-
-        console.log('URL:', `${this.API_URL}/login`);
-        console.log('Body:', body);
-        console.log('Headers:', headers);
         
         return this.http
             .post<{ access_token: string }>(
@@ -38,8 +44,7 @@ export class AuthService {
             )
             .pipe(
                 map(response => {
-                    console.log('Respuesta completa del servidor:', response);
-                    if (response.body && response.body.access_token) {
+                    if (response.body && response.body.access_token && isPlatformBrowser(this.platformId)) {
                         localStorage.setItem('access_token', response.body.access_token);
                         this.currentUserSubject.next(true);
                         return response.body;
@@ -47,16 +52,16 @@ export class AuthService {
                     throw new Error('No se recibió el token de acceso');
                 }),
                 catchError(error => {
-                    console.error('Error completo:', error);
-                    console.error('Estado:', error.status);
-                    console.error('Mensaje:', error.error);
+                    console.error('Error:', error);
                     return throwError(() => error);
                 })
             );
     }
 
     logout() {
-        localStorage.removeItem('access_token');
+        if (isPlatformBrowser(this.platformId)) {
+            localStorage.removeItem('access_token');
+        }
         this.currentUserSubject.next(false);
         this.router.navigate(['/login']);
     }
@@ -66,6 +71,33 @@ export class AuthService {
     }
 
     isAuthenticated(): boolean {
+        if (!isPlatformBrowser(this.platformId)) {
+            return false;
+        }
         return !!localStorage.getItem('access_token');
+    }
+
+    getUserInfo(): DecodedToken | null {
+        if (!isPlatformBrowser(this.platformId)) {
+            return null;
+        }
+
+        const token = localStorage.getItem('access_token');
+        if (!token) return null;
+
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(window.atob(base64));
+        } catch (error) {
+            return null;
+        }
+    }
+
+    updateProfile(userId: string, data: any): Observable<any> {
+        if (!isPlatformBrowser(this.platformId)) {
+            return of(null);
+        }
+        return this.http.put(`${this.API_URL}/profile/${userId}`, data);
     }
 }

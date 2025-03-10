@@ -7,6 +7,7 @@ import { EvaluationsComponent } from "./pages/evaluations/evaluations.component"
 import { ProfessorsComponent } from "./pages/professors/professors.component";
 import { StudentsComponent } from "./pages/students/students.component";
 import { LoginComponent } from "./pages/login/login.component";
+import { ProfileComponent } from "./pages/profile/profile.component";
 import { AuthGuard } from "./core/guards/auth.guard";
 
 export const routes: Routes = [
@@ -17,8 +18,9 @@ export const routes: Routes = [
     { path: "evaluations", component: EvaluationsComponent, canActivate: [AuthGuard] },
     { path: "professors", component: ProfessorsComponent, canActivate: [AuthGuard] },
     { path: "students", component: StudentsComponent, canActivate: [AuthGuard] },
-    { path: "", component: DepartmentsComponent, canActivate: [AuthGuard] },
-    { path: "**", redirectTo: "" }
+    { path: "profile", component: ProfileComponent, canActivate: [AuthGuard] },
+    { path: "", redirectTo: "profile", pathMatch: "full" },
+    { path: "**", redirectTo: "profile" }
 ];
 
 @NgModule({
