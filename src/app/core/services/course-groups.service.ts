@@ -39,6 +39,10 @@ export class CourseGroupsService {
         return this.http.post<CourseGroup>(this.apiUrlCourseGroups, group);
     }
 
+    deactivateGroup(id: number): Observable<void> {
+        return this.http.put<void>(`${this.apiUrlCourseGroups}/${id}/deactivate`, {});
+    }
+
     // updateGroup(id: number, group: Partial<CourseGroup>): Observable<CourseGroup> {
     //     return this.http.patch<CourseGroup>(`${this.apiUrl}/${id}`, group);
     // }
@@ -60,12 +64,16 @@ export class CourseGroupsService {
         return this.http.get<Schedule[]>(`${this.scheduleUrl}/group/${groupId}`);
     }
 
+    getSchedulesByCourse(courseId: number): Observable<Schedule[]> {
+        return this.http.get<Schedule[]>(`${this.scheduleUrl}/course/${courseId}`);
+    }
+
     createSchedule(schedule: CreateScheduleDto): Observable<Schedule> {
         return this.http.post<Schedule>(this.scheduleUrl, schedule);
     }
 
     updateSchedule(id: number, schedule: Partial<Schedule>): Observable<Schedule> {
-        return this.http.patch<Schedule>(`${this.scheduleUrl}/${id}`, schedule);
+        return this.http.put<Schedule>(`${this.scheduleUrl}/${id}`, schedule);
     }
 
     deleteSchedule(id: number): Observable<void> {

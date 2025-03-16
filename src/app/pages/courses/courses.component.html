@@ -15,7 +15,7 @@
                 <p>ID del Profesor: {{curso.professor.id}}</p>
             </div>
             <div class="course-actions">
-                <button class="btn btn-primary" [routerLink]="['/course-groups/course', curso.id]">
+                <button class="btn btn-primary" (click)="irAGestionarGrupos(curso.id)">
                     Gestionar Grupos
                 </button>
                 <button class="btn btn-danger" (click)="eliminarCurso(curso.id)">
@@ -47,6 +47,10 @@
                 <div class="form-group">
                     <label>ID del Profesor</label>
                     <input type="text" [(ngModel)]="nuevoCurso.professorId" name="professorId" required>
+                </div>
+                <div class="form-group">
+                    <label>Código del Curso</label>
+                    <input type="text" [(ngModel)]="nuevoCurso.courseCode" name="courseCode" required>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" (click)="mostrarFormulario = false">

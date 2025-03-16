@@ -1,3 +1,5 @@
+import { Schedule } from './schedule';
+
 export interface CourseGroup {
     id: number;
     name: string;
@@ -5,7 +7,8 @@ export interface CourseGroup {
     semester: string;
     year: number;
     isActive: boolean;
-    course_id: number;
+    courseId: number;
+    schedules: Schedule[];
 }
 
 export interface CreateCourseGroup {
@@ -13,6 +16,5 @@ export interface CreateCourseGroup {
     capacity: number;
     semester: string;
     year: number;
-    isActive: boolean;
-    course_id: number;
+    courseId: number;
 } 

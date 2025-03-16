@@ -28,7 +28,7 @@ export interface CreateCourseDto {
     name: string;
     description?: string;
     professorId: string;
-    code: string;
+    courseCode: string;
     prerequisites?: number[]; // IDs de los cursos prerequisitos
 }
 

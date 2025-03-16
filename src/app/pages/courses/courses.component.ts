@@ -22,7 +22,7 @@ export class CoursesComponent implements OnInit {
         name: '',
         description: '',
         professorId: '',
-        code: ''
+        courseCode: ''
     };
 
     constructor(
@@ -33,7 +33,7 @@ export class CoursesComponent implements OnInit {
     ngOnInit(): void {
         this.cargarCursos();
     }
-    
+
     cargarCursos() {
         this.courseService.getCourses().subscribe({
             next: (result) => {
@@ -56,9 +56,12 @@ export class CoursesComponent implements OnInit {
             this.errorMessage = 'El ID del profesor es requerido';
             return;
         }
+        if (!this.nuevoCurso.courseCode.trim()) {
+            this.errorMessage = 'El código del curso es requerido';
+            return;
+        }
+        this.errorMessage = '';
 
-        this.errorMessage = ''; 
-        
         this.courseService.createCourse(this.nuevoCurso).subscribe({
             next: (result) => {
                 console.log('Curso creado:', result);
@@ -69,8 +72,8 @@ export class CoursesComponent implements OnInit {
             error: (err) => {
                 console.error('Error al crear curso:', err);
                 if (err.error && err.error.message) {
-                    this.errorMessage = Array.isArray(err.error.message) 
-                        ? err.error.message.join(', ') 
+                    this.errorMessage = Array.isArray(err.error.message)
+                        ? err.error.message.join(', ')
                         : err.error.message;
                 } else {
                     this.errorMessage = 'Error al crear el curso';
@@ -99,7 +102,7 @@ export class CoursesComponent implements OnInit {
             name: '',
             description: '',
             professorId: '',
-            code: ''
+            courseCode: ''
         };
         this.errorMessage = '';
     }

@@ -2,28 +2,24 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
     { 
-        path: "courses", 
-        loadComponent: () => import('./courses/courses.component').then(m => m.CoursesComponent)
-    },
-    { 
-        path: "course-groups/course/:courseId", 
-        loadComponent: () => import('./course-groups/course-groups.component').then(m => m.CourseGroupsComponent)
-    },
-    { 
         path: "course-groups/:courseId/:groupId/schedules", 
         loadComponent: () => import('./schedules/schedules.component').then(m => m.SchedulesComponent)
     },
     { 
-        path: "departments", 
-        loadComponent: () => import('./departments/departments.component').then(m => m.DepartmentsComponent)
+        path: "course-groups/:courseId", 
+        loadComponent: () => import('./course-groups/course-groups.component').then(m => m.CourseGroupsComponent)
+    },
+    { 
+        path: "course-groups", 
+        loadComponent: () => import('./course-groups/course-groups.component').then(m => m.CourseGroupsComponent)
+    },
+    { 
+        path: "courses", 
+        loadComponent: () => import('./courses/courses.component').then(m => m.CoursesComponent)
     },
     { 
         path: "enrollments", 
         loadComponent: () => import('./enrollments/enrollments.component').then(m => m.EnrollmentsComponent)
-    },
-    { 
-        path: "evaluations", 
-        loadComponent: () => import('./evaluations/evaluations.component').then(m => m.EvaluationsComponent)
     },
     { 
         path: "professors", 
@@ -32,6 +28,18 @@ export const routes: Routes = [
     { 
         path: "students", 
         loadComponent: () => import('./students/students.component').then(m => m.StudentsComponent)
+    },
+    { 
+        path: "departments", 
+        loadComponent: () => import('./departments/departments.component').then(m => m.DepartmentsComponent)
+    },
+    { 
+        path: "evaluations", 
+        loadComponent: () => import('./evaluations/evaluations.component').then(m => m.EvaluationsComponent)
+    },
+    { 
+        path: "profile", 
+        loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
     },
     { 
         path: "login", 

@@ -16,11 +16,10 @@
                 <h3>{{horario.weekDay}}</h3>
             </div>
             <div class="schedule-body">
-                <p>Hora inicio: {{horario.startTime | date:'HH:mm'}}</p>
-                <p>Hora fin: {{horario.endTime | date:'HH:mm'}}</p>
+                <p>Hora inicio: {{horario.startTime | timeFormat }}</p>
+                <p>Hora fin: {{horario.endTime | timeFormat }}</p>
                 <p>Aula: {{horario.classroom}}</p>
-                <p>Desde: {{horario.startDate | date:'dd/MM/yyyy'}}</p>
-                <p>Hasta: {{horario.endDate | date:'dd/MM/yyyy'}}</p>
+                <p>Fecha: {{horario.classDate | date:'dd/MM/yyyy'}}</p>
             </div>
         </div>
     </div>
@@ -28,26 +27,31 @@
     <div class="modal" *ngIf="mostrarFormulario">
         <div class="modal-content">
             <h2>Crear Nuevo Horario</h2>
-            
+
             <div class="error-message" *ngIf="errorMessage">
                 {{errorMessage}}
             </div>
 
             <form (ngSubmit)="crearHorario()">
                 <div class="form-group">
+                    <label>Fecha de la clase</label>
+                    <input type="date" [(ngModel)]="nuevoHorario.classDate" name="classDate" required
+                        min="today">
+                </div>
+                <div class="form-group">
                     <label>Día de la semana</label>
                     <select [(ngModel)]="nuevoHorario.weekDay" name="weekDay" required>
-                        <option *ngFor="let day of weekDays" [value]="day">{{day}}</option>
+                        <option *ngFor="let day of weekDays" [value]="day">{{day | lowercase | titlecase}}</option>
                     </select>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Hora inicio</label>
-                        <input type="time" [(ngModel)]="nuevoHorario.startTime" name="startTime" required>
+                        <input type="time" [(ngModel)]="nuevoHorario.startTime" name="startTime" required step="3600">
                     </div>
                     <div class="form-group">
                         <label>Hora fin</label>
-                        <input type="time" [(ngModel)]="nuevoHorario.endTime" name="endTime" required>
+                        <input type="time" [(ngModel)]="nuevoHorario.endTime" name="endTime" required step="3600">
                     </div>
                 </div>
                 <div class="form-group">
@@ -56,12 +60,8 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Fecha inicio</label>
-                        <input type="date" [(ngModel)]="nuevoHorario.startDate" name="startDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha fin</label>
-                        <input type="date" [(ngModel)]="nuevoHorario.endDate" name="endDate" required>
+                        <label>Fecha de la clase</label>
+                        <input type="date" [(ngModel)]="nuevoHorario.classDate" name="classDate" required>
                     </div>
                 </div>
                 <div class="form-actions">
@@ -75,4 +75,4 @@
             </form>
         </div>
     </div>
-</div> 
+</div>

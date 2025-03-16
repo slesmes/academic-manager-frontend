@@ -4,23 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { CourseGroupsService } from '../../core/services/course-groups.service';
-import { Schedule, WeekDay, CreateScheduleDto } from '../../core/interfaces/schedule';
+import { Schedule, WeekDay, CreateScheduleDto, ScheduleForm } from '../../core/interfaces/schedule';
 import { CoursesService } from '../../core/services/courses.service';
-
-interface ScheduleForm {
-    startTime: string;
-    endTime: string;
-    weekDay: WeekDay;
-    classroom: string;
-    startDate: string;
-    endDate: string;
-}
+import { TimeFormatPipe } from '../../time-format.pipe';
 
 @Component({
     selector: 'app-schedules',
     templateUrl: './schedules.component.html',
     styleUrl: './schedules.component.scss',
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, TimeFormatPipe],
     standalone: true
 })
 export class SchedulesComponent implements OnInit {
@@ -30,14 +22,14 @@ export class SchedulesComponent implements OnInit {
     mostrarFormulario: boolean = false;
     errorMessage: string = '';
     weekDays = Object.values(WeekDay);
+    today: string = new Date().toISOString().split('T')[0];
 
     nuevoHorario: ScheduleForm = {
-        startTime: '',
-        endTime: '',
-        weekDay: WeekDay.MONDAY,
-        classroom: '',
-        startDate: '',
-        endDate: ''
+        classDate: '',          // Inicializar vacío
+        startTime: '09:00',     // Hora por defecto
+        endTime: '11:00',       // Hora por defecto
+        weekDay: 'LUNES',
+        classroom: ''
     };
 
     constructor(
@@ -48,15 +40,16 @@ export class SchedulesComponent implements OnInit {
 
     ngOnInit(): void {
         console.log('SchedulesComponent inicializado');
-        
+        this.setToday(); // Inicializar la fecha actual
+
         this.route.params.subscribe(params => {
             console.log('Parámetros recibidos:', params);
-            
+
             this.courseId = +params['courseId'];
             this.groupId = +params['groupId'];
             console.log('ID del curso:', this.courseId);
             console.log('ID del grupo:', this.groupId);
-            
+
             if (!this.courseId || !this.groupId) {
                 console.error('IDs inválidos');
                 this.errorMessage = 'IDs inválidos';
@@ -65,6 +58,11 @@ export class SchedulesComponent implements OnInit {
 
             this.loadSchedules();
         });
+    }
+
+    private setToday(): void {
+        const now = new Date();
+        this.today = now.toISOString().split('T')[0]; // Formato YYYY-MM-DD
     }
 
     abrirModal() {
@@ -81,7 +79,11 @@ export class SchedulesComponent implements OnInit {
     loadSchedules(): void {
         this.coursesService.getGroupSchedules(this.courseId, this.groupId).subscribe({
             next: (schedules) => {
-                this.horarios = schedules;
+                this.horarios = schedules.map(horario => ({
+                    ...horario,
+                    startTime: new Date(horario.startTime),
+                    endTime: new Date(horario.endTime)
+                }));
             },
             error: (error) => {
                 console.error('Error loading schedules:', error);
@@ -89,22 +91,28 @@ export class SchedulesComponent implements OnInit {
         });
     }
 
+    private padTime(time: string): string {
+        return time.split(':').map(t => t.padStart(2, '0')).join(':');
+    }
+
     crearHorario() {
-        if (!this.validarHorario()) {
-            return;
-        }
+        if (!this.validarHorario()) return;
+
+        // Construir fechas-hora combinadas
+        const startDateTime = `${this.nuevoHorario.classDate}T${this.padTime(this.nuevoHorario.startTime)}:00`;
+        const endDateTime = `${this.nuevoHorario.classDate}T${this.padTime(this.nuevoHorario.endTime)}:00`;
 
         const horarioDTO: CreateScheduleDto = {
-            startTime: this.nuevoHorario.startTime,
-            endTime: this.nuevoHorario.endTime,
+            startTime: startDateTime,
+            endTime: endDateTime,
             weekDay: this.nuevoHorario.weekDay,
             classroom: this.nuevoHorario.classroom,
-            startDate: this.nuevoHorario.startDate,
-            endDate: this.nuevoHorario.endDate,
+            classDate: this.nuevoHorario.classDate, // Ya está en formato YYYY-MM-DD
             groupId: this.groupId
         };
 
-        console.log('Creando horario:', horarioDTO);
+        console.log('Enviando:', horarioDTO);
+
         this.groupsService.createSchedule(horarioDTO).subscribe({
             next: () => {
                 console.log('Horario creado exitosamente');
@@ -115,8 +123,8 @@ export class SchedulesComponent implements OnInit {
             error: (err) => {
                 console.error('Error al crear horario:', err);
                 if (err.error && err.error.message) {
-                    this.errorMessage = Array.isArray(err.error.message) 
-                        ? err.error.message.join(', ') 
+                    this.errorMessage = Array.isArray(err.error.message)
+                        ? err.error.message.join(', ')
                         : err.error.message;
                 } else {
                     this.errorMessage = 'Error al crear el horario';
@@ -126,30 +134,19 @@ export class SchedulesComponent implements OnInit {
     }
 
     private validarHorario(): boolean {
-        if (!this.nuevoHorario.classroom.trim()) {
-            this.errorMessage = 'El aula es requerida';
-            return false;
-        }
-        if (!this.nuevoHorario.startDate || !this.nuevoHorario.endDate) {
-            this.errorMessage = 'Las fechas de inicio y fin son requeridas';
-            return false;
-        }
-        if (!this.nuevoHorario.startTime || !this.nuevoHorario.endTime) {
-            this.errorMessage = 'Las horas de inicio y fin son requeridas';
-            return false;
-        }
-        return true;
+        return !!this.nuevoHorario.classDate && 
+               !!this.nuevoHorario.startTime && 
+               !!this.nuevoHorario.endTime && 
+               !!this.nuevoHorario.classroom;
     }
 
     private resetNuevoHorario() {
         this.nuevoHorario = {
-            startTime: '',
-            endTime: '',
-            weekDay: WeekDay.MONDAY,
-            classroom: '',
-            startDate: '',
-            endDate: ''
+            classDate: '',
+            startTime: '09:00',
+            endTime: '11:00',
+            weekDay: 'LUNES',
+            classroom: ''
         };
-        this.errorMessage = '';
     }
-} 
+}
