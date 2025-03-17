@@ -1,1 +1,185 @@
-<p>evaluations works!</p>
+<div class="evaluations-container">
+    <h2>Gestión de Evaluaciones</h2>
+
+    <!-- Selector de Curso -->
+    <div class="course-selector">
+        <label>Seleccione un Curso:</label>
+        <select (change)="onCourseSelect($any($event.target).value)">
+            <option value="">Seleccione un curso</option>
+            <option *ngFor="let course of courses" [value]="course.id">
+                {{ course.name }}
+            </option>
+        </select>
+    </div>
+
+    <!-- Información del Curso Seleccionado -->
+    <div class="course-info" *ngIf="selectedCourse">
+        <h3>{{ selectedCourse.name }}</h3>
+        <p>Profesor: {{ selectedCourse.professor.name }}</p>
+        
+        <!-- Botones de Acción -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" (click)="showTypeEvaluationForm = true">
+                Crear Tipo de Evaluación
+            </button>
+        </div>
+
+        <!-- Lista de Tipos de Evaluación -->
+        <div class="evaluation-types-list">
+            <h4>Tipos de Evaluación</h4>
+            <div *ngIf="typeEvaluations.length === 0" class="no-evaluations">
+                No hay tipos de evaluación registrados para este curso
+            </div>
+            <div class="evaluation-type-card" *ngFor="let type of typeEvaluations">
+                <div class="evaluation-type-header">
+                    <h5>{{ type.name }}</h5>
+                    <span class="percentage">{{ type.percentage }}%</span>
+                </div>
+                <div class="evaluation-type-actions">
+                    <button class="btn btn-info" (click)="viewTypeEvaluationDetails(type)">
+                        Ver Notas
+                    </button>
+                    <button class="btn btn-primary" (click)="openAddEvaluationModal(type)">
+                        Agregar Evaluación
+                    </button>
+                    <button class="btn btn-warning" (click)="showEditEvaluationForm = true">
+                        Editar Tipo
+                    </button>
+                    <button class="btn btn-danger" (click)="deleteTypeEvaluation(type.id)">
+                        Eliminar Tipo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Nueva Evaluación -->
+    <div class="modal" *ngIf="showEvaluationForm">
+        <div class="modal-content">
+            <h3>Nueva Evaluación - {{ selectedTypeEvaluation?.name }}</h3>
+            <form (ngSubmit)="createEvaluation()">
+                <div class="form-group">
+                    <label>Calificación:</label>
+                    <input type="number" [(ngModel)]="newEvaluation.finalGrade" name="finalGrade" 
+                           min="0" max="5" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha:</label>
+                    <input type="date" [(ngModel)]="newEvaluation.date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Estudiante:</label>
+                    <select [(ngModel)]="newEvaluation.enrollmentId" name="enrollmentId" required>
+                        <option value="">Seleccione un estudiante</option>
+                        <!-- Aquí deberías cargar los estudiantes matriculados en el curso -->
+                    </select>
+                </div>
+
+                <div class="error-message" *ngIf="errorMessage">
+                    {{ errorMessage }}
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" (click)="showEvaluationForm = false">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Nuevo Tipo de Evaluación -->
+    <div class="modal" *ngIf="showTypeEvaluationForm">
+        <div class="modal-content">
+            <h3>Nuevo Tipo de Evaluación</h3>
+            <form (ngSubmit)="createTypeEvaluation()">
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input type="text" [(ngModel)]="newTypeEvaluation.name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Porcentaje:</label>
+                    <input type="number" [(ngModel)]="newTypeEvaluation.percentage" name="percentage" 
+                           min="1" max="100" required>
+                </div>
+
+                <div class="error-message" *ngIf="errorMessage">
+                    {{ errorMessage }}
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" (click)="showTypeEvaluationForm = false">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Editar Evaluación -->
+    <div class="modal" *ngIf="showEditEvaluationForm">
+        <div class="modal-content">
+            <h3>Editar Evaluación</h3>
+            <form (ngSubmit)="updateEvaluation()">
+                <div class="form-group">
+                    <label>Calificación:</label>
+                    <input type="number" [(ngModel)]="editingEvaluation.finalGrade" name="finalGrade" 
+                           min="0" max="5" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha:</label>
+                    <input type="date" [(ngModel)]="editingEvaluation.date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Estudiante:</label>
+                    <select [(ngModel)]="editingEvaluation.enrollmentId" name="enrollmentId" required>
+                        <option value="">Seleccione un estudiante</option>
+                        <!-- Aquí deberías cargar los estudiantes matriculados en el curso -->
+                    </select>
+                </div>
+
+                <div class="error-message" *ngIf="errorMessage">
+                    {{ errorMessage }}
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" (click)="showEditEvaluationForm = false">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Ver Notas -->
+    <div class="modal" *ngIf="showViewEvaluationsModal">
+        <div class="modal-content">
+            <h3>Notas - {{ selectedTypeEvaluation?.name }}</h3>
+            <div class="evaluations-details" *ngIf="typeEvaluationDetails">
+                <div class="student-grades" *ngFor="let evaluation of typeEvaluationDetails.evaluations">
+                    <div class="student-grade-row">
+                        <span class="student-name">{{ evaluation.enrollment.student.name }}</span>
+                        <span class="grade">{{ evaluation.finalGrade }}</span>
+                        <span class="date">{{ evaluation.date | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                </div>
+                <div *ngIf="!typeEvaluationDetails.evaluations?.length" class="no-grades">
+                    No hay calificaciones registradas
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" (click)="showViewEvaluationsModal = false">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

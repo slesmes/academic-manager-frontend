@@ -1,15 +1,16 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, catchError, throwError } from 'rxjs';
 import { Course, CreateCourseDto, UpdateCourseDto, CourseGroup, CreateCourseGroupDto } from '../interfaces/courses';
 import { Schedule, CreateScheduleDto } from '../interfaces/schedule';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class CoursesService {
-    private apiUrl = 'http://localhost:3000';
+    private apiUrl = `${environment.apiUrl}`;
     private platformId = inject(PLATFORM_ID);
     private httpClient = inject(HttpClient);
 
@@ -124,6 +125,21 @@ export class CoursesService {
             `${this.apiUrl}/courses/${courseId}/groups/${groupId}/schedules`,
             schedule,
             { headers: this.getHeaders() }
+        );
+    }
+
+    getCoursesByProfessor(professorId: string): Observable<Course[]> {
+        if (!isPlatformBrowser(this.platformId)) {
+            return of([]);
+        }
+        return this.httpClient.get<Course[]>(
+            `${this.apiUrl}/courses/professor/${professorId}`,
+            { headers: this.getHeaders() }
+        ).pipe(
+            catchError(error => {
+                console.error('Error al obtener los cursos del profesor:', error);
+                return throwError(() => error);
+            })
         );
     }
 }
