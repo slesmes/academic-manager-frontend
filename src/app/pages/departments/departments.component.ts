@@ -97,10 +97,8 @@ export class DepartmentsComponent implements OnInit {
     }
 
     const payload = {
-      id: this.departments.length + 1,
       name: this.departamentoForm.value.name.trim(),
       description: this.departamentoForm.value.description.trim(),
-      creationDate: new Date().toISOString()
     };
 
     this.departmentService.createDepartment(payload).subscribe({

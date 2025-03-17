@@ -1,27 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
-import { ActivatedRoute } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { CourseGroupsService } from '../../core/services/course-groups.service';
 import { CoursesService } from '../../core/services/courses.service';
-import { CourseGroup, Course } from '../../core/interfaces/courses';
-import { Schedule, WeekDay, CreateScheduleDto } from '../../core/interfaces/schedule';
+import { Course } from '../../core/interfaces/courses';
+import { CourseGroup, CreateCourseGroup } from '../../core/interfaces/course-groups';
+import { CreateScheduleDto, Schedule, WeekDay } from '../../core/interfaces/schedule';
 import { HttpErrorResponse } from '@angular/common/http';
-
-interface CreateGroupDTO {
-    name: string;
-    capacity: number;
-    semester: string;
-    year: number;
-    courseId: number;
-}
+import { TimeFormatPipe } from '../../time-format.pipe';
 
 @Component({
     selector: 'app-course-groups',
     templateUrl: './course-groups.component.html',
     styleUrl: './course-groups.component.scss',
-    imports: [CommonModule, FormsModule, RouterModule, ReactiveFormsModule],
+    imports: [CommonModule, FormsModule, RouterModule, ReactiveFormsModule, TimeFormatPipe],
     standalone: true
 })
 export class CourseGroupsComponent implements OnInit {
@@ -40,9 +33,9 @@ export class CourseGroupsComponent implements OnInit {
     selectedGroupId: number | null = null;
     weekDays = Object.values(WeekDay);
 
-    nuevoGrupo: CreateGroupDTO = {
+    nuevoGrupo: CreateCourseGroup = {
         name: '',
-        capacity: 0,
+        capacity: 30,
         semester: `${this.currentYear}-1`,
         year: this.currentYear,
         courseId: 0
@@ -86,24 +79,23 @@ export class CourseGroupsComponent implements OnInit {
 
     private initializeScheduleForm(): FormGroup {
         return this.fb.group({
-            weekDay: ['', Validators.required],
             startTime: ['', Validators.required],
             endTime: ['', Validators.required],
+            weekDay: ['', Validators.required],
             classroom: ['', Validators.required],
-            startDate: ['', Validators.required],
-            endDate: ['', Validators.required]
+            classDate: ['', Validators.required]
         });
     }
 
     ngOnInit(): void {
         console.log('CourseGroupsComponent inicializado');
-        
+
         this.route.params.subscribe(params => {
             console.log('Parámetros recibidos:', params);
-            
+
             this.courseId = +params['courseId'];
             console.log('ID del curso extraído:', this.courseId);
-            
+
             if (!this.courseId) {
                 console.error('ID de curso inválido');
                 this.errorMessage = 'ID de curso inválido';
@@ -135,16 +127,17 @@ export class CourseGroupsComponent implements OnInit {
             this.errorMessage = 'Error: No se pudo cargar los grupos del curso';
             return;
         }
-        
+
         this.groupsService.getGroupsByCourse(this.course.id).subscribe({
             next: (groups) => {
                 this.groups = groups.map(group => ({
                     ...group,
-                    course: this.course!,
-                    schedules: [],
-                    enrollments: []
+                    schedules: group.schedules?.map(schedule => ({
+                        ...schedule,
+                        startTime: new Date(schedule.startTime), 
+                        endTime: new Date(schedule.endTime)      
+                    }))
                 }));
-                this.groups.forEach(group => this.loadSchedules(this.course!.id, group.id));
             },
             error: (err) => {
                 console.error('Error al cargar grupos:', err);
@@ -156,15 +149,6 @@ export class CourseGroupsComponent implements OnInit {
                     this.errorMessage = 'Error al cargar los grupos';
                 }
             }
-        });
-    }
-
-    loadSchedules(courseId: number, groupId: number): void {
-        this.coursesService.getGroupSchedules(courseId, groupId).subscribe({
-            next: (schedules) => {
-                this.schedules[groupId] = schedules;
-            },
-            error: (error) => this.handleError(error)
         });
     }
 
@@ -183,8 +167,8 @@ export class CourseGroupsComponent implements OnInit {
             error: (err) => {
                 console.error('Error al crear grupo:', err);
                 if (err.error && err.error.message) {
-                    this.errorMessage = Array.isArray(err.error.message) 
-                        ? err.error.message.join(', ') 
+                    this.errorMessage = Array.isArray(err.error.message)
+                        ? err.error.message.join(', ')
                         : err.error.message;
                 } else {
                     this.errorMessage = 'Error al crear el grupo';
@@ -224,8 +208,24 @@ export class CourseGroupsComponent implements OnInit {
             this.errorMessage = 'El nombre del grupo es requerido';
             return false;
         }
+        if (this.nuevoGrupo.name.length > 10) {
+            this.errorMessage = 'El nombre del grupo no puede exceder los 10 caracteres';
+            return false;
+        }
         if (this.nuevoGrupo.capacity <= 0) {
             this.errorMessage = 'La capacidad debe ser mayor a 0';
+            return false;
+        }
+        if (!this.nuevoGrupo.semester) {
+            this.errorMessage = 'El semestre es requerido';
+            return false;
+        }
+        if (!this.nuevoGrupo.year || this.nuevoGrupo.year < 2000) {
+            this.errorMessage = 'El año debe ser válido (mayor o igual a 2000)';
+            return false;
+        }
+        if (!this.courseId) {
+            this.errorMessage = 'No se ha seleccionado un curso';
             return false;
         }
         return true;
@@ -255,55 +255,73 @@ export class CourseGroupsComponent implements OnInit {
     }
 
     createGroup(): void {
-        if (this.groupForm.valid && this.course) {
-            const groupData: CreateGroupDTO = {
-                name: this.groupForm.value.name.trim(),
-                capacity: Number(this.groupForm.value.capacity),
-                semester: this.groupForm.value.semester,
-                year: Number(this.groupForm.value.year),
-                courseId: this.course.id
-            };
+        // if (this.groupForm.valid && this.course) {
+        //     const groupData: CreateCourseGroup = {
+        //         name: this.groupForm.value.name.trim(),
+        //         capacity: Number(this.groupForm.value.capacity),
+        //         semester: this.groupForm.value.semester,
+        //         year: Number(this.groupForm.value.year),
+        //         courseId: this.course.id
+        //     };
 
-            this.coursesService.createCourseGroup(this.course.id, groupData).subscribe({
-                next: (group) => {
-                    this.groups.push(group);
-                    this.showGroupForm = false;
-                    this.groupForm.reset();
-                    window.alert('Grupo creado exitosamente');
-                },
-                error: (error) => this.handleError(error)
-            });
-        }
+        //     this.coursesService.createCourseGroup(this.course.id, groupData).subscribe({
+        //         next: (group) => {
+        //             this.groups.push(group);
+        //             this.showGroupForm = false;
+        //             this.groupForm.reset();
+        //             window.alert('Grupo creado exitosamente');
+        //         },
+        //         error: (error) => this.handleError(error)
+        //     });
+        // }
     }
 
     addSchedule(): void {
-        if (this.scheduleForm.valid && this.course && this.selectedGroupId !== null) {
+        if (this.scheduleForm.valid && this.selectedGroupId !== null) {
             const formValue = this.scheduleForm.value;
+
+            // Asegurarnos de que weekDay sea un valor válido del enum
+            const weekDay = formValue.weekDay as WeekDay;
+            if (!Object.values(WeekDay).includes(weekDay)) {
+                this.errorMessage = 'El día de la semana no es válido';
+                return;
+            }
+
+            // Convertir classDate a string en formato YYYY-MM-DD
+            const classDate = new Date(formValue.classDate).toISOString().split('T')[0];
+
+            // Combinar classDate con startTime y endTime
+            const startTime = `${classDate}T${formValue.startTime}:00`; // Formato YYYY-MM-DDTHH:mm:ss
+            const endTime = `${classDate}T${formValue.endTime}:00`;     // Formato YYYY-MM-DDTHH:mm:ss
+
+            // Crear el objeto scheduleData con los tipos correctos
             const scheduleData: CreateScheduleDto = {
-                startTime: formValue.startTime,
-                endTime: formValue.endTime,
-                weekDay: formValue.weekDay as WeekDay,
+                startTime: startTime, // Formato YYYY-MM-DDTHH:mm:ss
+                endTime: endTime,     // Formato YYYY-MM-DDTHH:mm:ss
+                weekDay: weekDay,
                 classroom: formValue.classroom.trim(),
-                startDate: formValue.startDate,
-                endDate: formValue.endDate,
+                classDate: classDate, // Formato YYYY-MM-DD
                 groupId: this.selectedGroupId
             };
 
-            this.coursesService.addScheduleToGroup(
-                this.course.id,
-                this.selectedGroupId,
-                scheduleData
-            ).subscribe({
-                next: (schedule) => {
-                    if (!this.schedules[this.selectedGroupId!]) {
-                        this.schedules[this.selectedGroupId!] = [];
-                    }
-                    this.schedules[this.selectedGroupId!].push(schedule);
+            console.log('Enviando horario:', scheduleData);
+            this.groupsService.createSchedule(scheduleData).subscribe({
+                next: () => {
+                    console.log('Horario creado exitosamente');
+                    this.cargarGrupos();
                     this.showScheduleForm = false;
                     this.scheduleForm.reset();
-                    window.alert('Horario agregado exitosamente');
                 },
-                error: (error) => this.handleError(error)
+                error: (err) => {
+                    console.error('Error al crear horario:', err);
+                    if (err.error && err.error.message) {
+                        this.errorMessage = Array.isArray(err.error.message)
+                            ? err.error.message.join(', ')
+                            : err.error.message;
+                    } else {
+                        this.errorMessage = 'Error al crear el horario';
+                    }
+                }
             });
         }
     }
